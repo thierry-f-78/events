@@ -1,4 +1,4 @@
-OBJS = timeouts.o signals.o poll.o poll_select.o test.o
+OBJS = timeouts.o signals.o poll.o poll_select.o socket.o test.o
 CPPFLAGS = -DASM
 CFLAGS = -Wall -g -O0 
 

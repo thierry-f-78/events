@@ -1,3 +1,6 @@
+#include "config.h"
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
@@ -5,9 +8,7 @@
 #include <sys/time.h>
 #include <sys/select.h>
 
-#include "conf.h"
 #include "poll.h"
-#include "log.h"
 
 static fd_set *rfds[2];
 static fd_set *polled_rfds[2];
@@ -41,11 +42,6 @@ static void poll_select_fd_zero(int mode) {
 		callback_rfds[mode][i] = NULL;
 }
 
-static void poll_select_set_timeout(struct timeval timeout,
-                                    void (*cb_timeout)(void)) {
-	callback_timeout = cb_timeout;
-}
-
 static void poll_select_poll(void) {
 	int ret_code;
 	int i;
@@ -63,27 +59,27 @@ static void poll_select_poll(void) {
 	for (i = ( (nb_fd_set * FD_SETSIZE) / (sizeof(unsigned int)*8) ) - 1;
 	     i>=0;
 	     i--) {
-		cp_read = *((unsigned int *)rfds[POLL_READ]+i);
-		cp_write = *((unsigned int *)rfds[POLL_WRITE]+i);
-		*((unsigned int *)polled_rfds[POLL_READ]+i) = cp_read;
-		*((unsigned int *)polled_rfds[POLL_WRITE]+i) = cp_write;
+		cp_read = *((unsigned int *)rfds[EV_POLL_READ]+i);
+		cp_write = *((unsigned int *)rfds[EV_POLL_WRITE]+i);
+		*((unsigned int *)polled_rfds[EV_POLL_READ]+i) = cp_read;
+		*((unsigned int *)polled_rfds[EV_POLL_WRITE]+i) = cp_write;
 
 		if (cp_read != 0) {
-			fd_read = polled_rfds[POLL_READ];
+			fd_read = polled_rfds[EV_POLL_READ];
 			for (maxfd=((i+1)*sizeof(unsigned int)*8)-1;
 			     maxfd<i*sizeof(unsigned int)*8;
 			     maxfd--)
-				if (FD_ISSET(maxfd, rfds[POLL_READ]))
+				if (FD_ISSET(maxfd, rfds[EV_POLL_READ]))
 					break;
 			break;
 		}
 
 		if (cp_write != 0) {
-			fd_write = polled_rfds[POLL_WRITE];
+			fd_write = polled_rfds[EV_POLL_WRITE];
 			for (maxfd=((i+1)*sizeof(unsigned int)*8)-1;
 			     maxfd<i*sizeof(unsigned int)*8;
 			     maxfd--)
-				if (FD_ISSET(maxfd, rfds[POLL_WRITE]))
+				if (FD_ISSET(maxfd, rfds[EV_POLL_WRITE]))
 					break;
 			break;
 		}
@@ -93,16 +89,16 @@ static void poll_select_poll(void) {
 	for (;
 	     i>=0;
 	     i--) {
-		cp_read = *((unsigned int *)rfds[POLL_READ]+i);
-		cp_write = *((unsigned int *)rfds[POLL_WRITE]+i);
-		*((unsigned int *)polled_rfds[POLL_READ]+i) = cp_read;
-		*((unsigned int *)polled_rfds[POLL_WRITE]+i) = cp_write;
+		cp_read = *((unsigned int *)rfds[EV_POLL_READ]+i);
+		cp_write = *((unsigned int *)rfds[EV_POLL_WRITE]+i);
+		*((unsigned int *)polled_rfds[EV_POLL_READ]+i) = cp_read;
+		*((unsigned int *)polled_rfds[EV_POLL_WRITE]+i) = cp_write;
 
 		if (cp_read != 0)
-			fd_read = polled_rfds[POLL_READ];
+			fd_read = polled_rfds[EV_POLL_READ];
 
 		if (cp_write != 0)
-			fd_write = polled_rfds[POLL_WRITE];
+			fd_write = polled_rfds[EV_POLL_WRITE];
 	}
 
 	// au lit ...
@@ -115,23 +111,23 @@ static void poll_select_poll(void) {
 	for (i = 0;
 	     i < ((maxfd-1)/(sizeof(unsigned int)*8))+1;
 	     i++) {
-		if (*((unsigned int *)polled_rfds[POLL_READ]+i) != 0) {
+		if (*((unsigned int *)polled_rfds[EV_POLL_READ]+i) != 0) {
 			for (maxfd = i * sizeof(unsigned int) * 8;
 			     maxfd < ( i + 1 ) * sizeof(unsigned int) * 8;
 			     maxfd ++) {
-				if (FD_ISSET(maxfd, polled_rfds[POLL_READ])) {
-					if (callback_rfds[POLL_READ][maxfd] != NULL)
-						callback_rfds[POLL_READ][maxfd](maxfd);
+				if (FD_ISSET(maxfd, polled_rfds[EV_POLL_READ])) {
+					if (callback_rfds[EV_POLL_READ][maxfd] != NULL)
+						callback_rfds[EV_POLL_READ][maxfd](maxfd);
 				}
 			}
 		}
-		if (*((unsigned int *)polled_rfds[POLL_WRITE]+i) != 0) {
+		if (*((unsigned int *)polled_rfds[EV_POLL_WRITE]+i) != 0) {
 			for (maxfd = i * sizeof(unsigned int) * 8;
 			     maxfd < ( i + 1 ) * sizeof(unsigned int) * 8;
 			     maxfd ++) {
-				if (FD_ISSET(maxfd, polled_rfds[POLL_WRITE])) {
-					if (callback_rfds[POLL_WRITE][maxfd] != NULL)
-						callback_rfds[POLL_WRITE][maxfd](maxfd);
+				if (FD_ISSET(maxfd, polled_rfds[EV_POLL_WRITE])) {
+					if (callback_rfds[EV_POLL_WRITE][maxfd] != NULL)
+						callback_rfds[EV_POLL_WRITE][maxfd](maxfd);
 				}
 			}
 		}
@@ -142,68 +138,53 @@ static void poll_select_poll(void) {
 	callback_timeout = NULL;
 }
 
-__attribute__((constructor))
-static void poll_select_init(void) {
-	maxconn =
-	          // fd pour le serveur de fichiers
-	          // 1 pour la connexion client,
-	          // 1 pour la lecture du fichier
-	          ( fileserver_maxconn * 2 ) +
-
-	          // fd pour le serveur d'ouverture de fichiers
-				 // un pour le coté serveur, un pour le coté client
-	          ( openfile_nb_threads * 2 ) +
-
-	          // la socket en listen
-	          1 +
-
-				 // les stdios
-				 3;
+static void poll_select_init(int maxfd) {
+	maxconn = maxfd;
 
 	// maxconn sera toujours au moins egal a 1 et donc
 	// jamais negatif
 	nb_fd_set = ( ( maxconn - 1 ) / FD_SETSIZE ) + 1; 
 
-	rfds[POLL_READ] = (fd_set *)calloc(sizeof(fd_set), nb_fd_set);
-	if (rfds[POLL_READ] == NULL) {
-		logmsg(LOG_CRIT, "calloc(%d, %d)[%d]: %s", sizeof(fd_set),
+	rfds[EV_POLL_READ] = (fd_set *)calloc(sizeof(fd_set), nb_fd_set);
+	if (rfds[EV_POLL_READ] == NULL) {
+		fprintf(stderr, "calloc(%d, %d)[%d]: %s", sizeof(fd_set),
 		       nb_fd_set, errno, strerror(errno));
 		exit(1);
 	}
 
-	rfds[POLL_WRITE] = (fd_set *)calloc(sizeof(fd_set), nb_fd_set);
-	if (rfds[POLL_WRITE] == NULL) {
-		logmsg(LOG_CRIT, "calloc(%d, %d)[%d]: %s", sizeof(fd_set),
+	rfds[EV_POLL_WRITE] = (fd_set *)calloc(sizeof(fd_set), nb_fd_set);
+	if (rfds[EV_POLL_WRITE] == NULL) {
+		fprintf(stderr, "calloc(%d, %d)[%d]: %s", sizeof(fd_set),
 		       nb_fd_set, errno, strerror(errno));
 		exit(1);
 	}
 
-	polled_rfds[POLL_READ] = (fd_set *)calloc(sizeof(fd_set), nb_fd_set);
-	if (polled_rfds[POLL_READ] == NULL) {
-		logmsg(LOG_CRIT, "calloc(%d, %d)[%d]: %s", sizeof(fd_set),
+	polled_rfds[EV_POLL_READ] = (fd_set *)calloc(sizeof(fd_set), nb_fd_set);
+	if (polled_rfds[EV_POLL_READ] == NULL) {
+		fprintf(stderr, "calloc(%d, %d)[%d]: %s", sizeof(fd_set),
 		       nb_fd_set, errno, strerror(errno));
 		exit(1);
 	}
 
-	polled_rfds[POLL_WRITE] = (fd_set *)calloc(sizeof(fd_set), nb_fd_set);
-	if (polled_rfds[POLL_WRITE] == NULL) {
-		logmsg(LOG_CRIT, "calloc(%d, %d)[%d]: %s", sizeof(fd_set),
+	polled_rfds[EV_POLL_WRITE] = (fd_set *)calloc(sizeof(fd_set), nb_fd_set);
+	if (polled_rfds[EV_POLL_WRITE] == NULL) {
+		fprintf(stderr, "calloc(%d, %d)[%d]: %s", sizeof(fd_set),
 		       nb_fd_set, errno, strerror(errno));
 		exit(1);
 	}
 
-	callback_rfds[POLL_READ] = (void (**)(int fd))calloc(
+	callback_rfds[EV_POLL_READ] = (void (**)(int fd))calloc(
 	                           sizeof(void (*)(int fd)), maxconn);
-	if (callback_rfds[POLL_READ] == NULL) {
-		logmsg(LOG_CRIT, "calloc(%d, %d)[%d]: %s",
+	if (callback_rfds[EV_POLL_READ] == NULL) {
+		fprintf(stderr, "calloc(%d, %d)[%d]: %s",
 		       sizeof(fd_set), nb_fd_set, errno, strerror(errno));
 		exit(1);
 	}
 
-	callback_rfds[POLL_WRITE] = (void (**)(int fd))calloc(
+	callback_rfds[EV_POLL_WRITE] = (void (**)(int fd))calloc(
 	                            sizeof(void (*)(int fd)), maxconn);
-	if (callback_rfds[POLL_WRITE] == NULL) {
-		logmsg(LOG_CRIT, "calloc(%d, %d)[%d]: %s",
+	if (callback_rfds[EV_POLL_WRITE] == NULL) {
+		fprintf(stderr, "calloc(%d, %d)[%d]: %s",
 		       sizeof(fd_set), nb_fd_set, errno, strerror(errno));
 		exit(1);
 	}
@@ -217,7 +198,6 @@ static void poll_select_register(void) {
 	poll.fd_set      = poll_select_fd_set;
 	poll.fd_clr      = poll_select_fd_clr;
 	poll.fd_zero     = poll_select_fd_zero;
-	poll.set_timeout = poll_select_set_timeout;
 	poll.poll        = poll_select_poll;
 }
 
