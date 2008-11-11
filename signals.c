@@ -1,83 +1,89 @@
 /*
- * Copyright (c) 2005-2010 Thierry FOURNIER
+ * Copyright (c) 2008 Thierry FOURNIER
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- *
- * $Id: arpalert.c 421 2006-11-04 10:56:25Z thierry $
+ * 2 of the License.
  *
  */
 
+#include "config.h"
+
 #include <signal.h>
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <string.h>
-#include <errno.h>
+//#include <errno.h>
 
-#include "log.h"
+#include "signals.h"
 
-// set flag signals
-int sigchld = 0;
-int sighup  = 0;
-int sigstop = 0;
+#define NB_SIG _NSIG
 
-void setsigchld(int signal){
-	sigchld++;
-	logmsg(LOG_DEBUG, "SIGCHLD");
-}
-void setsighup(int signal){
-	sighup++;
-	logmsg(LOG_DEBUG, "SIGHUP");
-}
-void setsigstop(int signal){
-	sigstop++;
-	logmsg(LOG_DEBUG, "SIGSTOP");
-	exit(0);
-}
-void setsigpipe(int signal){
+struct ev_signals_register signals[NB_SIG];
+
+int nbsigs = 0;
+
+/* function called for each signal */
+static void ev_signal_interrupt(int signal) {
+	if (signals[signal].func == NULL ||
+	    signals[signal].hide == 1)
+		return;
+	
+	// increment counter for later run
+	if (signals[signal].sync == EV_SIGNAL_SYNCH) {
+		nbsigs++;
+		signals[signal].nb++;
+	}
+
+	// run function
+	else 
+		signals[signal].func(signal, signals[signal].arg);
 }
 
-// setup signals
-void (*setsignal (int signal, void (*function)(int)))(int) {
+/* init signal */
+int ev_signal_add(int signal, int sync, ev_signal_run func, void *arg) {
 	struct sigaction old, new;
 
 	memset(&new, 0, sizeof(struct sigaction));
-	new.sa_handler = function;
+	new.sa_handler = ev_signal_interrupt;
 	new.sa_flags = SA_RESTART;
 	sigemptyset(&(new.sa_mask));
-	if (sigaction(signal, &new, &old)) { 
-		logmsg(LOG_CRIT, "sigaction[%d]: %s", errno, strerror(errno));
-		exit(1);
-	}
-	return(old.sa_handler);
+	if (sigaction(signal, &new, &old))
+		return 1;
+	
+	signals[signal].nb   = 0;
+	signals[signal].hide = 0;
+	signals[signal].sync = sync;
+	signals[signal].func = func;
+	signals[signal].arg  = arg;
+
+	return 0;
 }
 
-// init signals
-void signals_init(void){
-	(void)setsignal(SIGINT,  setsigstop);
-	(void)setsignal(SIGTERM, setsigstop);
-	(void)setsignal(SIGQUIT, setsigstop);
-	(void)setsignal(SIGABRT, setsigstop);
-	(void)setsignal(SIGCHLD, setsigchld); 
-	(void)setsignal(SIGHUP,  setsighup); 
-	(void)setsignal(SIGPIPE, setsigpipe); 
+/* check for active signal */
+void ev_signal_check_active(void) {
+	int i, j;
+
+	if (nbsigs == 0)
+		return;
+
+	for (i=0; i<NB_SIG; i++) {
+		if (signals[i].func == NULL)
+			continue;
+
+		for(j = signals[i].nb; j>0; j++) {
+			signals[i].func(i, signals[i].arg);
+		}
+	}
 }
 
-// signals computing
-void signals_func(void){
+/* signal initialization */
+__attribute__((constructor))
+static void ev_signal_init(void) {
+	int i;
 
-	// SIGCHLD
-	if(sigchld > 0){
-		sigchld--;
-	}
-	// SIGHUP
-	if(sighup > 0){
-		sighup--;
-	}
-	// SIGQUIT
-	if(sigstop > 0){
-		sigstop--;
+	for (i=0; i<NB_SIG; i++) {
+		signals[i].func = NULL;
 	}
 }
 
