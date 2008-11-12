@@ -16,12 +16,6 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 
-#define EV_SIGNAL_SYNCH  0
-#define EV_SIGNAL_ASYNCH 1
-
-#define EV_POLL_READ  0
-#define EV_POLL_WRITE 1
-
 /* errors */
 #define EV_ERR_NOT_PORT -0x002 /* ev_socket_bind: port is not a number*/
 #define EV_ERR_NOT_ADDR -0x003 /* address unavalaible */
@@ -70,6 +64,15 @@ extern struct poller poll;
 extern struct timeval now;
 extern struct ev_signals_register signals[];
 
+/****************************************************************************
+*
+* POLLER
+*
+****************************************************************************/
+
+#define EV_POLL_READ  0
+#define EV_POLL_WRITE 1
+
 /* init events system */
 static inline int ev_poll_init(int maxfd, struct ev_timeout_node *tmoutbase) {
 	return poll.init(maxfd, tmoutbase);
@@ -101,6 +104,15 @@ static inline int ev_poll_poll(void) {
 	return poll.poll();
 }
 
+/****************************************************************************
+*
+* SYSTEM SIGNALS
+*
+****************************************************************************/
+
+#define EV_SIGNAL_SYNCH  0
+#define EV_SIGNAL_ASYNCH 1
+
 /* add signal */
 int ev_signal_add(int signal, int sync, ev_signal_run func, void *arg);
 
@@ -118,6 +130,12 @@ static inline void ev_signal_show(int signal) {
 /* check for active signal */
 void ev_signal_check_active(void);
 
+/****************************************************************************
+*
+* SOCKETS
+*
+****************************************************************************/
+
 /* create and bind a socket */
 int ev_socket_bind(char *socket_name, int maxconn);
 
@@ -131,6 +149,12 @@ static inline void ev_timeout_init(struct ev_timeout_node *base) {
 	base->go[0]   = NULL;
 	base->go[1]   = NULL;
 }
+
+/****************************************************************************
+*
+* TIMEOUTS
+*
+****************************************************************************/
 
 /* insert */
 struct ev_timeout_node *ev_timeout_add(struct ev_timeout_node *base,
