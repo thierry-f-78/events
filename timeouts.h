@@ -1,11 +1,15 @@
 /*
- * tree management timeouts
+ * Copyright (c) 2008 Thierry FOURNIER
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version
+ * 2 of the License.
+ *
  */
 
 #ifndef __TIMEOUTS_H__
 #define __TIMEOUTS_H__
-
-#include "config.h"
 
 #include <stdlib.h>
 

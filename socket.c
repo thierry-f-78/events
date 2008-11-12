@@ -1,4 +1,12 @@
-#define __BIND_C__
+/*
+ * Copyright (c) 2008 Thierry FOURNIER
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version
+ * 2 of the License.
+ *
+ */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -15,11 +23,13 @@
 
 #include "socket.h"
 
+#if 0
 static char *protos[]= {
 	[AF_UNIX]  = "AF_UNIX",
 	[AF_INET]  = "AF_INET",
 	[AF_INET6] = "AF_INET6"
 };
+#endif
 
 int ev_socket_bind(char *socket_name, int maxconn) {
 	int ret_code;
