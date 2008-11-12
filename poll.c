@@ -11,8 +11,8 @@
 #include <time.h>
 #include <sys/time.h>
 
-#include "event.h"
+#include "events.h"
 
-struct poller poll;
-struct timeval now;
+struct ev_poller ev_poll;
+struct timeval ev_now;
 

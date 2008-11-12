@@ -16,7 +16,7 @@
 #include <sys/time.h>
 #include <sys/select.h>
 
-#include "event.h"
+#include "events.h"
 
 struct rfds_cb {
 	ev_poll_cb_wakeup func;
@@ -79,8 +79,8 @@ static int poll_select_poll(void) {
 			break;
 
 		ev_timeout_get_tv(t, &tv);
-		diff.tv_sec  = tv.tv_sec  - now.tv_sec;
-		diff.tv_usec = tv.tv_usec - now.tv_usec;
+		diff.tv_sec  = tv.tv_sec  - ev_now.tv_sec;
+		diff.tv_usec = tv.tv_usec - ev_now.tv_usec;
 		if (diff.tv_usec < 0) {
 			diff.tv_usec += 1000000;
 			diff.tv_sec  -= 1;
@@ -150,7 +150,7 @@ static int poll_select_poll(void) {
 	ret_code = select(maxfd+1, fd_read, fd_write, NULL, tmout);
 
 	// on mets l'heure a jour
-	gettimeofday(&now, NULL);
+	gettimeofday(&ev_now, NULL);
 
 	// check signals
 	ev_signal_check_active();
@@ -237,11 +237,11 @@ static int poll_select_init(int maxfd, struct ev_timeout_node *timeout_base) {
 // a degager plus tard
 __attribute__((constructor))
 static void poll_select_register(void) {
-	poll.init        = poll_select_init;
-	poll.fd_is_set   = poll_select_fd_is_set;
-	poll.fd_set      = poll_select_fd_set;
-	poll.fd_clr      = poll_select_fd_clr;
-	poll.fd_zero     = poll_select_fd_zero;
-	poll.poll        = poll_select_poll;
+	ev_poll.init        = poll_select_init;
+	ev_poll.fd_is_set   = poll_select_fd_is_set;
+	ev_poll.fd_set      = poll_select_fd_set;
+	ev_poll.fd_clr      = poll_select_fd_clr;
+	ev_poll.fd_zero     = poll_select_fd_zero;
+	ev_poll.poll        = poll_select_poll;
 }
 

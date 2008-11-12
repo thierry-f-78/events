@@ -11,7 +11,7 @@
 #include <signal.h>
 #include <string.h>
 
-#include "event.h"
+#include "events.h"
 
 #define NB_SIG _NSIG
 

@@ -51,7 +51,7 @@ struct ev_timeout_node {
 	void *arg;
 };
 
-struct poller {
+struct ev_poller {
 	int (*init)(int maxfd, struct ev_timeout_node *timeout_base);
 	int (*fd_is_set)(int fd, int mode);
 	void (*fd_set)(int fd, int mode, ev_poll_cb_wakeup func, void *arg);
@@ -60,9 +60,9 @@ struct poller {
 	int (*poll)(void);
 };
 
-extern struct poller poll;
-extern struct timeval now;
-extern struct ev_signals_register signals[];
+extern struct ev_poller ev_poll;
+extern struct timeval ev_now;
+extern struct ev_signals_register ev_signals[];
 
 /****************************************************************************
 *
@@ -75,33 +75,33 @@ extern struct ev_signals_register signals[];
 
 /* init events system */
 static inline int ev_poll_init(int maxfd, struct ev_timeout_node *tmoutbase) {
-	return poll.init(maxfd, tmoutbase);
+	return ev_poll.init(maxfd, tmoutbase);
 }
 
 /* check if file descriptor is set */
 static inline int ev_poll_fd_is_set(int fd, int mode) {
-	return poll.fd_is_set(fd, mode);
+	return ev_poll.fd_is_set(fd, mode);
 }
 
 /* add event for a file descriptor */
 static inline void ev_poll_fd_set(int fd, int mode,
                                   ev_poll_cb_wakeup func, void *arg) {
-	poll.fd_set(fd, mode, func, arg);
+	ev_poll.fd_set(fd, mode, func, arg);
 }
 
 /* remove event for a file descriptor */
 static inline void ev_poll_fd_clr(int fd, int mode) {
-	poll.fd_clr(fd, mode);
+	ev_poll.fd_clr(fd, mode);
 }
 
 /* clear all events */
 static inline void ev_poll_fd_zero(int mode) {
-	poll.fd_zero(mode);
+	ev_poll.fd_zero(mode);
 }
 
 /* run poller */
 static inline int ev_poll_poll(void) {
-	return poll.poll();
+	return ev_poll.poll();
 }
 
 /****************************************************************************
@@ -118,13 +118,13 @@ int ev_signal_add(int signal, int sync, ev_signal_run func, void *arg);
 
 /* hide signal */
 static inline void ev_signal_hide(int signal) {
-	signals[signal].nb   = 0;
-	signals[signal].hide = 1;
+	ev_signals[signal].nb   = 0;
+	ev_signals[signal].hide = 1;
 }
 
 /* show signal */
 static inline void ev_signal_show(int signal) {
-	signals[signal].hide = 0;
+	ev_signals[signal].hide = 0;
 }
 
 /* check for active signal */

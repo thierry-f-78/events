@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <sys/time.h>
 
-#include "event.h"
+#include "events.h"
 
 static inline int bitscan(register unsigned long long int v) {
 	register int b = 0;
