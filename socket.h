@@ -14,6 +14,8 @@
 #define EV_ERR_BIND     -0x103 /* error with syscall bind */
 #define EV_ERR_LISTEN   -0x104 /* error with syscall listen */
 #define EV_ERR_ACCEPT   -0x105 /* error with syscall accept */
+#define EV_ERR_CALLOC   -0x106 /* error with syscall calloc */
+#define EV_ERR_SELECT   -0x107 /* error with syscall select */
 
 /* create and bind a socket */
 int ev_socket_bind(char *socket_name, int maxconn);
