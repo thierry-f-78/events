@@ -10,7 +10,7 @@
 
 #include <stdio.h>
 
-#include "timeouts.h"
+#include "event.h"
 
 int main(void) {
 	struct timeval tv;

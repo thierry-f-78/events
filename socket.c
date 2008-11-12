@@ -21,7 +21,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
-#include "socket.h"
+#include "event.h"
 
 #if 0
 static char *protos[]= {

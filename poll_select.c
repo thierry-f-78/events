@@ -16,10 +16,7 @@
 #include <sys/time.h>
 #include <sys/select.h>
 
-#include "poll.h"
-#include "timeouts.h"
-#include "socket.h"
-#include "signals.h"
+#include "event.h"
 
 struct rfds_cb {
 	ev_poll_cb_wakeup func;
