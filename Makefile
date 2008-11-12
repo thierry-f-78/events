@@ -16,3 +16,5 @@ clean:
 doc:
 	doxygen events.doxygen
 
+cleandoc:
+	rm -rf html

@@ -34,6 +34,9 @@ typedef void (*ev_timeout_run)(struct timeval *tv, void *);
 typedef void (*ev_signal_run)(int signal, void *arg);
 typedef void (*ev_poll_cb_wakeup)(int fd, void *arg);
 
+/**
+ * haha satyin alive
+ */
 struct ev_signals_register {
 	unsigned int nb;
 	ev_signal_run func;
@@ -136,7 +139,11 @@ void ev_signal_check_active(void);
 *
 ****************************************************************************/
 
-/* create and bind a socket */
+/**
+ * create and bind a socket 
+ * @param socket_name like "<ipv4>:<port>"
+ * @param maxconn 
+ */
 int ev_socket_bind(char *socket_name, int maxconn);
 
 /* accept connection */
