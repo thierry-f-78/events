@@ -42,9 +42,10 @@ static inline unsigned long long int
 }
 
 // insert
-struct ev_timeout_node *ev_timeout_add(struct ev_timeout_node *n, struct timeval *tv,
-                                       ev_timeout_run func, void *arg) {
-	//           n; // pour la recherche
+ev_errors ev_timeout_add(struct ev_timeout_node *n, struct timeval *tv,
+                         ev_timeout_run func, void *arg,
+                         struct ev_timeout_node **node) {
+	//                      n; // pour la recherche
 	struct ev_timeout_node *c; // nouveau noeud
 	struct ev_timeout_node *d; // deuxieme moitié d'un noeud splitté
 	unsigned long long int date;
@@ -89,6 +90,8 @@ struct ev_timeout_node *ev_timeout_add(struct ev_timeout_node *n, struct timeval
 			unsigned long long int mask1;
 	
 			d = (struct ev_timeout_node *)malloc(sizeof(struct ev_timeout_node));
+			if (d == NULL)	
+				return EV_ERR_MALLOC;
 
 			// gcc -O2 est plus rapide lorsque cette operation est repetée ...
 			// curieux ... ???? ...
@@ -141,7 +144,10 @@ struct ev_timeout_node *ev_timeout_add(struct ev_timeout_node *n, struct timeval
 
 
 	// nouveau noeud
-	c          = (struct ev_timeout_node *)malloc(sizeof(struct ev_timeout_node));
+	c = (struct ev_timeout_node *)malloc(sizeof(struct ev_timeout_node));
+	if (c == NULL)	
+		return EV_ERR_MALLOC;
+
 	c->date    = date;
 	// mask          0 0 1 1 0 0 0 0
 	// mask2nextbit  0 0 0 0 1 0 0 0
@@ -153,7 +159,11 @@ struct ev_timeout_node *ev_timeout_add(struct ev_timeout_node *n, struct timeval
 	c->parent  = n;
 	n->go[idx] = c;
 
-	return c;
+
+	if (node != NULL)
+		*node = c;
+
+	return EV_OK;
 }
 
 void ev_timeout_del(struct ev_timeout_node *val) {

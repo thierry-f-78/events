@@ -25,19 +25,24 @@ static void ev_signal_interrupt(int signal) {
 	    signals[signal].hide == 1)
 		return;
 	
+	switch (signals[signal].sync) {
+
 	// increment counter for later run
-	if (signals[signal].sync == EV_SIGNAL_SYNCH) {
+	case EV_SIGNAL_ASYNCH:
 		nbsigs++;
 		signals[signal].nb++;
-	}
+		break;
 
 	// run function
-	else 
+	case EV_SIGNAL_SYNCH:
 		signals[signal].func(signal, signals[signal].arg);
+		break;
+
+	}
 }
 
 /* init signal */
-int ev_signal_add(int signal, int sync, ev_signal_run func, void *arg) {
+ev_errors ev_signal_add(int signal, ev_synch sync, ev_signal_run func, void *arg) {
 	struct sigaction old, new;
 
 	memset(&new, 0, sizeof(struct sigaction));
@@ -45,7 +50,7 @@ int ev_signal_add(int signal, int sync, ev_signal_run func, void *arg) {
 	new.sa_flags = SA_RESTART;
 	sigemptyset(&(new.sa_mask));
 	if (sigaction(signal, &new, &old))
-		return 1;
+		return EV_ERR_SIGACTIO;
 	
 	signals[signal].nb   = 0;
 	signals[signal].hide = 0;
@@ -53,7 +58,7 @@ int ev_signal_add(int signal, int sync, ev_signal_run func, void *arg) {
 	signals[signal].func = func;
 	signals[signal].arg  = arg;
 
-	return 0;
+	return EV_OK;
 }
 
 /* check for active signal */

@@ -31,7 +31,7 @@ static char *protos[]= {
 };
 #endif
 
-int ev_socket_bind(char *socket_name, int maxconn) {
+ev_errors ev_socket_bind(char *socket_name, int backlog) {
 	int ret_code;
 	int listen_socket;
 	int conf_socket_type = -1;
@@ -188,7 +188,7 @@ int ev_socket_bind(char *socket_name, int maxconn) {
 	}
 
 	// listen
-	ret_code = listen(listen_socket, maxconn);
+	ret_code = listen(listen_socket, backlog);
 	if (ret_code == -1) {
 		close(listen_socket);
 		return EV_ERR_LISTEN;
@@ -198,7 +198,7 @@ int ev_socket_bind(char *socket_name, int maxconn) {
 	return listen_socket;
 }
 
-int ev_socket_accept(int listen_socket, struct sockaddr_storage *addr) {
+ev_errors ev_socket_accept(int listen_socket, struct sockaddr_storage *addr) {
 	int fd;
 	socklen_t len;
 	int ret_code;

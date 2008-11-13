@@ -30,24 +30,24 @@ static int maxconn;
 static struct rfds_cb *callback_rfds[2];
 static struct ev_timeout_node *tmoutbase;
 
-static int poll_select_fd_is_set(int fd, int mode) {
+static int poll_select_fd_is_set(int fd, ev_mode mode) {
 	return FD_ISSET(fd, rfds[mode]);
 }
 
-static void poll_select_fd_set(int fd, int mode,
+static void poll_select_fd_set(int fd, ev_mode mode,
                                ev_poll_cb_wakeup func, void *arg) {
 	FD_SET(fd, rfds[mode]);
 	callback_rfds[mode][fd].func = func;
 	callback_rfds[mode][fd].arg  = arg;
 }
 
-static void poll_select_fd_clr(int fd, int mode) {
+static void poll_select_fd_clr(int fd, ev_mode mode) {
 	FD_CLR(fd, rfds[mode]);
 	callback_rfds[mode][fd].func = NULL;
 	callback_rfds[mode][fd].arg  = NULL;
 }
 
-static void poll_select_fd_zero(int mode) {
+static void poll_select_fd_zero(ev_mode mode) {
 	int i;
 
 	FD_ZERO(rfds[mode]);
@@ -57,7 +57,7 @@ static void poll_select_fd_zero(int mode) {
 	}
 }
 
-static int poll_select_poll(void) {
+static ev_errors poll_select_poll(void) {
 	int ret_code;
 	int i;
 	unsigned int cp_read;
@@ -197,7 +197,7 @@ static int poll_select_poll(void) {
 	return 0;
 }
 
-static int poll_select_init(int maxfd, struct ev_timeout_node *timeout_base) {
+static ev_errors poll_select_init(int maxfd, struct ev_timeout_node *timeout_base) {
 	maxconn = maxfd;
 	tmoutbase = timeout_base;
 
