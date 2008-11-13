@@ -95,8 +95,10 @@ typedef enum {
 
 } ev_synch;
 
+struct ev_timeout_node;
+
 /** Callback prototype for timeout events */
-typedef void (*ev_timeout_run)(struct timeval *tv, void *);
+typedef void (*ev_timeout_run)(struct timeval *tv, struct ev_timeout_node *self, void *);
 
 /** Callback prototype for signal event */
 typedef void (*ev_signal_run)(int signal, void *arg);
@@ -119,7 +121,7 @@ struct ev_timeout_node {
 	unsigned long long int mask;
 	struct ev_timeout_node *parent;
 	struct ev_timeout_node *go[2];
-	void (*func)(struct timeval *tv, void *);
+	ev_timeout_run func;
 	void *arg;
 };
 
@@ -449,7 +451,7 @@ static inline void ev_timeout_call_func(struct ev_timeout_node *val) {
 	struct timeval tv;
 
 	ev_timeout_get_tv(val, &tv);
-	val->func(&tv, val->arg);
+	val->func(&tv, val, val->arg);
 }
 
 #endif
