@@ -231,7 +231,7 @@ static inline ev_errors ev_poll_poll(void) {
 /**
  * add signal 
  *
- * @param signal   is signal number (see /usr/include/bits/sigsset.h
+ * @param signal   is signal number (see /usr/include/bits/signum.h
  *                 on common linux systems)
  *
  * @param sync     is the synchronous mode. with EV_SIGNAL_SYNCH the
@@ -252,7 +252,7 @@ ev_errors ev_signal_add(int signal, ev_synch sync, ev_signal_run func, void *arg
  * hide signal: the signal is ignored. If run queue contain previous signals
  * theses are deleted
  *
- * @param signal   is signal number (see /usr/include/bits/sigsset.h
+ * @param signal   is signal number (see /usr/include/bits/signum.h
  *                 on common linux systems)
  */
 static inline void ev_signal_hide(int signal) {
@@ -263,7 +263,7 @@ static inline void ev_signal_hide(int signal) {
 /**
  * show signal: the signal is now consider
  *
- * @param signal   is signal number (see /usr/include/bits/sigsset.h
+ * @param signal   is signal number (see /usr/include/bits/signum.h
  *                 on common linux systems)
  */
 static inline void ev_signal_show(int signal) {
