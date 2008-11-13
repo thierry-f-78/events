@@ -157,6 +157,8 @@ ev_errors ev_timeout_add(struct ev_timeout_node *n, struct timeval *tv,
 	c->go[0]   = NULL;
 	c->go[1]   = NULL;
 	c->parent  = n;
+	c->func    = func;
+	c->arg     = arg;
 	n->go[idx] = c;
 
 
