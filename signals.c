@@ -72,9 +72,11 @@ void ev_signal_check_active(void) {
 		if (signals[i].func == NULL)
 			continue;
 
-		for(j = signals[i].nb; j>0; j++) {
+		for(j = signals[i].nb; j>0; j--) {
 			signals[i].func(i, signals[i].arg);
 		}
+		nbsigs -= signals[i].nb;
+		signals[i].nb = 0;
 	}
 }
 
