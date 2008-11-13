@@ -124,6 +124,8 @@ ev_errors ev_timeout_add(struct ev_timeout_node *n, struct timeval *tv,
 			d->date          = n->date;
 			d->mask          = mask2;
 			d->parent        = n;
+			d->func          = n->func;
+			d->arg           = n->arg;
 
 			d->go[0]         = n->go[0];
 			if (d->go[0] != NULL)
