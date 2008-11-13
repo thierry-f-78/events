@@ -121,23 +121,19 @@ ev_errors ev_timeout_add(struct ev_timeout_node *n, struct timeval *tv,
 			idx = ( date & mask2nextbit(mask1) ) != 0x0ULL;
 
 			// split
-			d->date          = n->date;
-			d->mask          = mask2;
-			d->parent        = n;
-			d->func          = n->func;
-			d->arg           = n->arg;
-
-			d->go[0]         = n->go[0];
-			if (d->go[0] != NULL)
-				d->go[0]->parent = d;
-
-			d->go[1]         = n->go[1];
-			if (d->go[1] != NULL)
-				d->go[1]->parent = d;
+			d->date     = n->date;
+			d->mask     = mask1;
+			d->parent   = n->parent;
+			d->go[!idx] = n;
+			if (d->parent->go[0] == n)
+				d->parent->go[0] = d;
+			else
+				d->parent->go[1] = d;
 
 			// orig
-			n->mask     = mask1;
-			n->go[!idx] = d;
+			n->mask     = mask2;
+			n->parent   = d;
+			n           = d;
 
 			// fin
 			break;
