@@ -87,8 +87,10 @@ static ev_errors poll_select_poll(void) {
 		}
 
 		// execution des timeouts si besoin
-		if (diff.tv_sec < 0 || ( diff.tv_sec == 0 && diff.tv_usec < 0) )
+		if (diff.tv_sec < 0 || ( diff.tv_sec == 0 && diff.tv_usec < 0) ) {
 			ev_timeout_call_func(t);
+			ev_timeout_del(t);
+		}
 
 		// sinon, on sort
 		else {
@@ -160,8 +162,10 @@ static ev_errors poll_select_poll(void) {
 		return EV_ERR_SELECT;
 	
 	// timeouts
-	else if (ret_code == 0)
+	else if (ret_code == 0) {
 		ev_timeout_call_func(t);
+		ev_timeout_del(t);
+	}
 
 	// on analyse le retour
 	else
