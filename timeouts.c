@@ -166,7 +166,7 @@ ev_errors ev_timeout_add(struct ev_timeout_node *n, struct timeval *tv,
 	return EV_OK;
 }
 
-void ev_timeout_remove(struct ev_timeout_node *val) {
+void ev_timeout_del(struct ev_timeout_node *val) {
 	struct ev_timeout_node *n; // parent of deleted node
 	struct ev_timeout_node *p; // prent of parent node
 	struct ev_timeout_node *b; // broser of deleted node

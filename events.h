@@ -352,30 +352,11 @@ ev_errors ev_timeout_add(struct ev_timeout_node *base,
                          void *arg, struct ev_timeout_node **node);
 
 /**
- * free timeout node
+ * remove timeout node from tree
  *
  * @param val   is a pointer to the freed node
  */
-static inline void ev_timeout_free(struct ev_timeout_node *val) {
-	free(val);
-}
-
-/**
- * remove timeout node from tre, but no free this node
- *
- * @param val   is a pointer to the freed node
- */
-void ev_timeout_remove(struct ev_timeout_node *val);
-
-/**
- * delete timeout node
- *
- * @param val   is a pointer to the deleted node
- */
-static inline void ev_timeout_del(struct ev_timeout_node *val) {
-	ev_timeout_remove(val);
-	ev_timeout_free(val);
-}
+void ev_timeout_del(struct ev_timeout_node *val);
 
 /** 
  * get min time 
