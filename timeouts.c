@@ -176,7 +176,7 @@ void ev_timeout_del(struct ev_timeout_node *val) {
 	/* initial status:     after deletion status:
 	 *
     *       [p]               [p]
-	 *      0   1             0   1
+    *      0   1             0   1
 	 *           \                 \    
 	 *           [n]               [b]
 	 *          0   1
