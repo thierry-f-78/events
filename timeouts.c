@@ -114,8 +114,8 @@ ev_errors ev_timeout_add(struct ev_timeout_node *n, struct timeval *tv,
 			// mask2 &= n->mask         0 0 0 0 1 1 1 0
 		
 			// plus rapide qu'en mutualisant les operations
-			mask1   = ( ~ ( ( 1 << (bits+1) ) - 1 ) ) & n->mask;
-			mask2   =     ( ( 1 << (bits+1) ) - 1 )   & n->mask;
+			mask1   = ( ~ ( ( 1ULL << (bits+1) ) - 1ULL ) ) & n->mask;
+			mask2   =     ( ( 1ULL << (bits+1) ) - 1ULL )   & n->mask;
 
 			// index du nouveau noeud
 			idx = ( date & mask2nextbit(mask1) ) != 0x0ULL;
