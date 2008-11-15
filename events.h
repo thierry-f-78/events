@@ -394,39 +394,6 @@ static inline void ev_timeout_build(struct timeval *tv,
  */
 ev_errors ev_timeout_insert(struct ev_timeout_basic_node *base,
                             struct ev_timeout_node *node);
-/** 
- * insert timeout 
- *
- * @param base   preallocated base node
- *
- * @param tv     the hour of event must be wake up
- *
- * @param func   the timeout callback called
- *
- * @param arg    a easy argument gived to timeout function
- *
- * @param node   if node != NULL, a pointer to the new timeout node
- *               is set;
- *
- * @return       EV_OK if ok, < 0 if an error is occured. the error code can
- *               be EV_ERR_MALLOC
- */
-static inline ev_errors ev_timeout_add(struct ev_timeout_basic_node *base,
-                                       struct timeval *tv,
-                                       ev_timeout_run func, void *arg,
-                                       struct ev_timeout_node **node) {
-	struct ev_timeout_node *n;
-
-	n = ev_timeout_new();
-	if (n == NULL)
-		return EV_ERR_MALLOC;
-	ev_timeout_init_node(n);
-	ev_timeout_build(tv, func, arg, n);
-	ev_timeout_insert(base, n);
-	if (node != NULL)
-		*node = n;
-	return EV_OK;
-}
 
 /** 
  * free memory for node
@@ -441,16 +408,6 @@ void ev_timeout_free(struct ev_timeout_node *val);
  * @param val   is a pointer to the freed node
  */
 void ev_timeout_remove(struct ev_timeout_node *val);
-
-/**
- * remove timeout node from tree and free it
- *
- * @param val   is a pointer to the freed node
- */
-static inline void ev_timeout_del(struct ev_timeout_node *val) {
-	ev_timeout_remove(val);
-	ev_timeout_free(val);
-}
 
 /** 
  * get min time 
