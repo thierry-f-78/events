@@ -44,31 +44,33 @@ static inline unsigned long long int
 	return ( ( val >> 1 ) ^ val ) & ( val >> 1 );
 }
 
-// insert
-ev_errors ev_timeout_add(struct ev_timeout_basic_node *b, struct timeval *tv,
-                         ev_timeout_run func, void *arg,
-                         struct ev_timeout_node **node) {
-	//                      n; // pour la recherche
-	struct ev_timeout_node *t; // new tree element
-	struct ev_timeout_basic_node *n; // new node
-	struct ev_timeout_basic_node *l; // new leaf
-	unsigned long long int date;
-	unsigned char idx;
+// nouveau noeud
+struct ev_timeout_node *ev_timeout_new(struct ev_timeout_node *node) {
+	struct ev_timeout_node *t;
 
-	// nouveau noeud
-	t = (struct ev_timeout_node *)calloc(1, sizeof(struct ev_timeout_node));
-	if (t == NULL)	
-		return EV_ERR_MALLOC;
+	if (node == NULL) {
+		t = (struct ev_timeout_node *)calloc(1, sizeof(struct ev_timeout_node));
+		if (t == NULL)	
+			return NULL;
+	}
+	else
+		t = node;
+
 	t->node.me = t;
 	t->leaf.me = t;
+	return t;
+}
+
+// insert
+ev_errors ev_timeout_insert(struct ev_timeout_basic_node *b,
+                         struct ev_timeout_node *t) {
+	struct ev_timeout_basic_node *n; // new node
+	struct ev_timeout_basic_node *l; // new leaf
+	unsigned char idx;
 
 	// node dispatch
 	n = &t->node;
 	l = &t->leaf;
-
-	date   = (unsigned int)tv->tv_sec;
-	date <<= 32;
-	date  |= (unsigned int)tv->tv_usec;
 
 	// find insert point
 	while (1) {
@@ -84,14 +86,14 @@ ev_errors ev_timeout_add(struct ev_timeout_basic_node *b, struct timeval *tv,
 		// si les deux date sont egales apres l'application du masque
 		// mask2 sera == 0, sinon sont premier bit à 1 sera celui de
 		// la cission du neoud
-		mask2 = (b->date & b->mask) ^ (date & b->mask);
+		mask2 = (b->date & b->mask) ^ (l->date & b->mask);
 
 		// on passe au noeud suivant
 		if ( mask2 == 0x0ULL ) {
 
 			// choix du noeud suivant 
 			// on choisis si on va vers le haut ou le bas
-			idx = ( date & mask2nextbit(b->mask) ) != 0x0ULL;
+			idx = ( l->date & mask2nextbit(b->mask) ) != 0x0ULL;
 
 			// on est au bout, ou bien c'est un doublon :-(
 			if (b->go[idx] == NULL) 
@@ -108,7 +110,7 @@ ev_errors ev_timeout_add(struct ev_timeout_basic_node *b, struct timeval *tv,
 
 			// gcc -O2 est plus rapide lorsque cette operation est repetée ...
 			// curieux ... ???? ...
-			mask2 = (b->date & b->mask) ^ (date & b->mask);
+			mask2 = (b->date & b->mask) ^ (l->date & b->mask);
 			bits = bitscan(mask2);
 	
 			// ce que l'on veut
@@ -131,7 +133,7 @@ ev_errors ev_timeout_add(struct ev_timeout_basic_node *b, struct timeval *tv,
 			mask2   =     ( ( 1ULL << (bits+1) ) - 1ULL )   & b->mask;
 
 			// index du nouveau noeud
-			idx = ( date & mask2nextbit(mask1) ) != 0x0ULL;
+			idx = ( l->date & mask2nextbit(mask1) ) != 0x0ULL;
 
 			// split
 			n->date     = b->date;
@@ -153,8 +155,6 @@ ev_errors ev_timeout_add(struct ev_timeout_basic_node *b, struct timeval *tv,
 		}
 	}
 
-
-	l->date     = date;
 	// mask          0 0 1 1 0 0 0 0
 	// mask2nextbit  0 0 0 0 1 0 0 0
 	// << 1          0 0 0 1 0 0 0 0
@@ -163,18 +163,16 @@ ev_errors ev_timeout_add(struct ev_timeout_basic_node *b, struct timeval *tv,
 	l->go[0]    = NULL;
 	l->go[1]    = NULL;
 	l->parent   = b;
-	l->me->func = func;
-	l->me->arg  = arg;
 	b->go[idx]  = l;
-
-
-	if (node != NULL)
-		*node = l->me;
 
 	return EV_OK;
 }
 
-void ev_timeout_del(struct ev_timeout_node *val) {
+void ev_timeout_free(struct ev_timeout_node *val) {
+	free(val);
+}
+
+void ev_timeout_remove(struct ev_timeout_node *val) {
 	struct ev_timeout_basic_node *m; // my leaf
 	struct ev_timeout_basic_node *n; // parent of deleted leaf
 	struct ev_timeout_basic_node *p; // parent of parent leaf
@@ -243,15 +241,13 @@ void ev_timeout_del(struct ev_timeout_node *val) {
 			n->go[0]->parent = n;
 		if (n->go[1] != NULL)
 			n->go[1]->parent = n;
-		if (n->parent != NULL)
+		if (n->parent != NULL) {
 			if (n->parent->go[0] == d)
 				n->parent->go[0] = n;
 			else
 				n->parent->go[1] = n;
+		}
 	}
-
-	memset(val, 0, sizeof(struct ev_timeout_node));
-	free(val);
 }
 
 /* get time */
