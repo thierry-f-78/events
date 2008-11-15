@@ -28,7 +28,7 @@ static fd_set *polled_rfds[2];
 static int nb_fd_set;
 static int maxconn;
 static struct rfds_cb *callback_rfds[2];
-static struct ev_timeout_node *tmoutbase;
+static struct ev_timeout_basic_node *tmoutbase;
 
 static int poll_select_fd_is_set(int fd, ev_mode mode) {
 	return FD_ISSET(fd, rfds[mode]);
@@ -201,7 +201,7 @@ static ev_errors poll_select_poll(void) {
 	return 0;
 }
 
-static ev_errors poll_select_init(int maxfd, struct ev_timeout_node *timeout_base) {
+static ev_errors poll_select_init(int maxfd, struct ev_timeout_basic_node *timeout_base) {
 	maxconn = maxfd;
 	tmoutbase = timeout_base;
 

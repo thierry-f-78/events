@@ -115,19 +115,27 @@ struct ev_signals_register {
 	unsigned char hide;
 };
 
-/** timeouts events management */
-struct ev_timeout_node {
+struct ev_timeout_node;
+
+/** timeouts events management node */
+struct ev_timeout_basic_node {
 	unsigned long long int date;
 	unsigned long long int mask;
-	struct ev_timeout_node *parent;
-	struct ev_timeout_node *go[2];
+	struct ev_timeout_basic_node *parent;
+	struct ev_timeout_basic_node *go[2];
+	struct ev_timeout_node *me;
+};
+/** timeouts events management */
+struct ev_timeout_node {
+	struct ev_timeout_basic_node node;
+	struct ev_timeout_basic_node leaf;
 	ev_timeout_run func;
 	void *arg;
 };
 
 /** poller functions pointer */
 struct ev_poller {
-	ev_errors (*init)(int maxfd, struct ev_timeout_node *timeout_base);
+	ev_errors (*init)(int maxfd, struct ev_timeout_basic_node *timeout_base);
 	int (*fd_is_set)(int fd, ev_mode mode);
 	void (*fd_set)(int fd, ev_mode mode, ev_poll_cb_wakeup func, void *arg);
 	void (*fd_clr)(int fd, ev_mode mode);
@@ -158,7 +166,7 @@ extern struct ev_signals_register ev_signals[];
  * @return           On success, return 0, else return error code < 0.
  *                   The error can be EV_ERR_CALLOC.
  */
-static inline ev_errors ev_poll_init(int maxfd, struct ev_timeout_node *tmoutbase) {
+static inline ev_errors ev_poll_init(int maxfd, struct ev_timeout_basic_node *tmoutbase) {
 	return ev_poll.init(maxfd, tmoutbase);
 }
 
@@ -323,7 +331,7 @@ ev_errors ev_socket_accept(int listen_socket, struct sockaddr_storage *addr);
  *
  * @param base  preallocated base node
  */
-static inline void ev_timeout_init(struct ev_timeout_node *base) {
+static inline void ev_timeout_init(struct ev_timeout_basic_node *base) {
 	base->mask    = 0x0ULL;
 	base->parent  = NULL;
 	base->go[0]   = NULL;
@@ -347,7 +355,7 @@ static inline void ev_timeout_init(struct ev_timeout_node *base) {
  * @return       EV_OK if ok, < 0 if an error is occured. the error code can
  *               be EV_ERR_MALLOC
  */
-ev_errors ev_timeout_add(struct ev_timeout_node *base,
+ev_errors ev_timeout_add(struct ev_timeout_basic_node *base,
                          struct timeval *tv, ev_timeout_run func,
                          void *arg, struct ev_timeout_node **node);
 
@@ -365,7 +373,7 @@ void ev_timeout_del(struct ev_timeout_node *val);
  *
  * @return       return a pointer to the min timeout node
  */
-struct ev_timeout_node *ev_timeout_get_min(struct ev_timeout_node *base);
+struct ev_timeout_node *ev_timeout_get_min(struct ev_timeout_basic_node *base);
 
 /**
  * get minx time
@@ -374,7 +382,7 @@ struct ev_timeout_node *ev_timeout_get_min(struct ev_timeout_node *base);
  *
  * @return       return a pointer to the max timeout node
  */
-struct ev_timeout_node *ev_timeout_get_max(struct ev_timeout_node *base);
+struct ev_timeout_node *ev_timeout_get_max(struct ev_timeout_basic_node *base);
 
 /**
  * get next node
@@ -404,7 +412,7 @@ struct ev_timeout_node *ev_timeout_get_prev(struct ev_timeout_node *current);
  * @return       return a pointer to the prev timeout node
  *               or NULL if dont exists time
  */
-struct ev_timeout_node *ev_timeout_exists(struct ev_timeout_node *base,
+struct ev_timeout_node *ev_timeout_exists(struct ev_timeout_basic_node *base,
                                           struct timeval *tv);
 
 /**
@@ -416,8 +424,8 @@ struct ev_timeout_node *ev_timeout_exists(struct ev_timeout_node *base,
  */
 static inline void ev_timeout_get_tv(struct ev_timeout_node *val,
                                      struct timeval *tv) {
-	tv->tv_sec  = val->date >> 32;
-	tv->tv_usec = val->date & 0x00000000fffffffffULL;
+	tv->tv_sec  = val->leaf.date >> 32;
+	tv->tv_usec = val->leaf.date & 0x00000000fffffffffULL;
 }
 
 /**

@@ -8,6 +8,9 @@
  *
  */
 
+#include <string.h>
+#include <stdio.h>
+
 #include <stdlib.h>
 #include <time.h>
 #include <stdint.h>
@@ -42,14 +45,26 @@ static inline unsigned long long int
 }
 
 // insert
-ev_errors ev_timeout_add(struct ev_timeout_node *n, struct timeval *tv,
+ev_errors ev_timeout_add(struct ev_timeout_basic_node *b, struct timeval *tv,
                          ev_timeout_run func, void *arg,
                          struct ev_timeout_node **node) {
 	//                      n; // pour la recherche
-	struct ev_timeout_node *c; // nouveau noeud
-	struct ev_timeout_node *d; // deuxieme moitié d'un noeud splitté
+	struct ev_timeout_node *t; // new tree element
+	struct ev_timeout_basic_node *n; // new node
+	struct ev_timeout_basic_node *l; // new leaf
 	unsigned long long int date;
 	unsigned char idx;
+
+	// nouveau noeud
+	t = (struct ev_timeout_node *)calloc(1, sizeof(struct ev_timeout_node));
+	if (t == NULL)	
+		return EV_ERR_MALLOC;
+	t->node.me = t;
+	t->leaf.me = t;
+
+	// node dispatch
+	n = &t->node;
+	l = &t->leaf;
 
 	date   = (unsigned int)tv->tv_sec;
 	date <<= 32;
@@ -69,35 +84,31 @@ ev_errors ev_timeout_add(struct ev_timeout_node *n, struct timeval *tv,
 		// si les deux date sont egales apres l'application du masque
 		// mask2 sera == 0, sinon sont premier bit à 1 sera celui de
 		// la cission du neoud
-		mask2 = (n->date & n->mask) ^ (date & n->mask);
+		mask2 = (b->date & b->mask) ^ (date & b->mask);
 
 		// on passe au noeud suivant
 		if ( mask2 == 0x0ULL ) {
 
 			// choix du noeud suivant 
 			// on choisis si on va vers le haut ou le bas
-			idx = ( date & mask2nextbit(n->mask) ) != 0x0ULL;
+			idx = ( date & mask2nextbit(b->mask) ) != 0x0ULL;
 
-			if (n->go[idx] == NULL) { // on est arrivé au bout
-				getpid();
+			// on est au bout, ou bien c'est un doublon :-(
+			if (b->go[idx] == NULL) 
 				break;
-			}
 
-			n = n->go[idx];
+			// noeud suivant
+			b = b->go[idx];
 		}
 
 		// sinon il faut couper ce noeud en deux
 		else {
 			unsigned int bits;
 			unsigned long long int mask1;
-	
-			d = (struct ev_timeout_node *)malloc(sizeof(struct ev_timeout_node));
-			if (d == NULL)	
-				return EV_ERR_MALLOC;
 
 			// gcc -O2 est plus rapide lorsque cette operation est repetée ...
 			// curieux ... ???? ...
-			mask2 = (n->date & n->mask) ^ (date & n->mask);
+			mask2 = (b->date & b->mask) ^ (date & b->mask);
 			bits = bitscan(mask2);
 	
 			// ce que l'on veut
@@ -116,26 +127,26 @@ ev_errors ev_timeout_add(struct ev_timeout_node *n, struct timeval *tv,
 			// mask2 &= n->mask         0 0 0 0 1 1 1 0
 		
 			// plus rapide qu'en mutualisant les operations
-			mask1   = ( ~ ( ( 1ULL << (bits+1) ) - 1ULL ) ) & n->mask;
-			mask2   =     ( ( 1ULL << (bits+1) ) - 1ULL )   & n->mask;
+			mask1   = ( ~ ( ( 1ULL << (bits+1) ) - 1ULL ) ) & b->mask;
+			mask2   =     ( ( 1ULL << (bits+1) ) - 1ULL )   & b->mask;
 
 			// index du nouveau noeud
 			idx = ( date & mask2nextbit(mask1) ) != 0x0ULL;
 
 			// split
-			d->date     = n->date;
-			d->mask     = mask1;
-			d->parent   = n->parent;
-			d->go[!idx] = n;
-			if (d->parent->go[0] == n)
-				d->parent->go[0] = d;
+			n->date     = b->date;
+			n->mask     = mask1;
+			n->parent   = b->parent;
+			n->go[!idx] = b;
+			if (n->parent->go[0] == b)
+				n->parent->go[0] = n;
 			else
-				d->parent->go[1] = d;
+				n->parent->go[1] = n;
 
 			// orig
-			n->mask     = mask2;
-			n->parent   = d;
-			n           = d;
+			b->mask     = mask2;
+			b->parent   = n;
+			b           = n;
 
 			// fin
 			break;
@@ -143,35 +154,32 @@ ev_errors ev_timeout_add(struct ev_timeout_node *n, struct timeval *tv,
 	}
 
 
-	// nouveau noeud
-	c = (struct ev_timeout_node *)malloc(sizeof(struct ev_timeout_node));
-	if (c == NULL)	
-		return EV_ERR_MALLOC;
-
-	c->date    = date;
+	l->date     = date;
 	// mask          0 0 1 1 0 0 0 0
 	// mask2nextbit  0 0 0 0 1 0 0 0
 	// << 1          0 0 0 1 0 0 0 0
 	// -1            0 0 0 0 1 1 1 1
-	c->mask    = ( mask2nextbit(n->mask) << 1) - 1;
-	c->go[0]   = NULL;
-	c->go[1]   = NULL;
-	c->parent  = n;
-	c->func    = func;
-	c->arg     = arg;
-	n->go[idx] = c;
+	l->mask     = (mask2nextbit(b->mask) << 1) - 1ULL;
+	l->go[0]    = NULL;
+	l->go[1]    = NULL;
+	l->parent   = b;
+	l->me->func = func;
+	l->me->arg  = arg;
+	b->go[idx]  = l;
 
 
 	if (node != NULL)
-		*node = c;
+		*node = l->me;
 
 	return EV_OK;
 }
 
 void ev_timeout_del(struct ev_timeout_node *val) {
-	struct ev_timeout_node *n; // parent of deleted node
-	struct ev_timeout_node *p; // prent of parent node
-	struct ev_timeout_node *b; // brother of deleted node
+	struct ev_timeout_basic_node *m; // my leaf
+	struct ev_timeout_basic_node *n; // parent of deleted leaf
+	struct ev_timeout_basic_node *p; // parent of parent leaf
+	struct ev_timeout_basic_node *b; // brother of deleted leaf
+	struct ev_timeout_basic_node *d; // deleted node
 
 	/* initial status:     after deletion status:
 	 *
@@ -181,11 +189,14 @@ void ev_timeout_del(struct ev_timeout_node *val) {
 	 *           [n]               [b]
 	 *          0   1
 	 *         /     \        
-	 *       [b]    [val]
+	 *       [b]     [m]
 	 */
 
+	// me
+	m = &val->leaf;
+
 	// get parent
-	n = val->parent;
+	n = m->parent;
 
 	// get parent of parent
 	p = n->parent;
@@ -194,7 +205,7 @@ void ev_timeout_del(struct ev_timeout_node *val) {
 	if (p == NULL) {
 
 		// get brother
-		if (n->go[0] == val)
+		if (n->go[0] == m)
 			n->go[0] = NULL;
 		else
 			n->go[1] = NULL;
@@ -204,7 +215,7 @@ void ev_timeout_del(struct ev_timeout_node *val) {
 	else {
 
 		// get brother
-		if (n->go[0] == val)
+		if (n->go[0] == m)
 			b = n->go[1];
 		else
 			b = n->go[0];
@@ -218,14 +229,33 @@ void ev_timeout_del(struct ev_timeout_node *val) {
 			p->go[0] = b;
 		else
 			p->go[1] = b;
-
-		free(n);
 	}
+
+	// swap unused node (n) with deleted node (val->node)
+	if (n != &val->node) {
+		d                = &val->node;
+		n->date          = d->date;
+		n->mask          = d->mask;
+		n->parent        = d->parent;
+		n->go[0]         = d->go[0];
+		n->go[1]         = d->go[1];
+		if (n->go[0] != NULL)
+			n->go[0]->parent = n;
+		if (n->go[1] != NULL)
+			n->go[1]->parent = n;
+		if (n->parent != NULL)
+			if (n->parent->go[0] == d)
+				n->parent->go[0] = n;
+			else
+				n->parent->go[1] = n;
+	}
+
+	memset(val, 0, sizeof(struct ev_timeout_node));
 	free(val);
 }
 
 /* get time */
-struct ev_timeout_node *ev_timeout_exists(struct ev_timeout_node *base,
+struct ev_timeout_node *ev_timeout_exists(struct ev_timeout_basic_node *base,
                                           struct timeval *tv) {
 	unsigned long long int date;
 	unsigned char idx;
@@ -242,7 +272,7 @@ struct ev_timeout_node *ev_timeout_exists(struct ev_timeout_node *base,
 
 		// si la date correspond et  que l'ion ne peux plus avancer, on a fini
 		if ( ( date ^ base->date ) == 0x0ULL && base->go[0] == NULL && base->go[1] == NULL )
-			return base;
+			return base->me;
 	
 		// on cherche le prochain noeud
 		idx = ( date & mask2nextbit(base->mask) ) != 0x0ULL;
@@ -258,7 +288,7 @@ struct ev_timeout_node *ev_timeout_exists(struct ev_timeout_node *base,
 }
 
 /* get max time */
-struct ev_timeout_node *ev_timeout_get_min(struct ev_timeout_node *base) {
+struct ev_timeout_node *ev_timeout_get_min(struct ev_timeout_basic_node *base) {
 	if (base->go[0] != NULL)
 		base = base->go[0];
 	else if (base->go[1] != NULL)
@@ -268,11 +298,11 @@ struct ev_timeout_node *ev_timeout_get_min(struct ev_timeout_node *base) {
 		
 	while (base->go[0] != NULL)
 		base = base->go[0];
-	return base;
+	return base->me;
 }
 
 /* get min time */
-struct ev_timeout_node *ev_timeout_get_max(struct ev_timeout_node *base) {
+struct ev_timeout_node *ev_timeout_get_max(struct ev_timeout_basic_node *base) {
 	if (base->go[1] != NULL)
 		base = base->go[1];
 	else if (base->go[0] != NULL)
@@ -282,12 +312,13 @@ struct ev_timeout_node *ev_timeout_get_max(struct ev_timeout_node *base) {
 		
 	while (base->go[1] != NULL)
 		base = base->go[1];
-	return base;
+	return base->me;
 }
 
 /* get next node */
 struct ev_timeout_node *ev_timeout_get_next(struct ev_timeout_node *current) {
-	struct ev_timeout_node *p;
+	struct ev_timeout_basic_node *m;
+	struct ev_timeout_basic_node *p;
 	int sens = 1;
 
 	// on verifie si on peut aller a gauche,
@@ -296,33 +327,34 @@ struct ev_timeout_node *ev_timeout_get_next(struct ev_timeout_node *current) {
 	//   -> on ne peut pas si a droite c'est NULL ou si on e viens
 	// sinon on recule
 	//
-	p = current;
+	p = &current->leaf;
+	m = p;
 	while (p != NULL) {
 
 		// on peut aller a gauche, si 
 		//  - on avance
 		//  - c'est pas NULL
 		//  - on en viens pas
-		if (sens == 1 && p->go[0] != NULL && p->go[0] != current)
+		if (sens == 1 && p->go[0] != NULL && p->go[0] != m)
 			p = p->go[0];
 
 		// on peut aller a droite si
 		//  - c'est pas NULL
 		//  - on en viens pas
-		else if (p->go[1] != NULL && p->go[1] != current) {
+		else if (p->go[1] != NULL && p->go[1] != m) {
 			sens = 1;
 			p = p->go[1];
 		}
 
 		// si on ne peut plus avancer, c'est que on a trouve
 		// le noeud suivant
-		else if (p->go[1] == NULL && p->go[0] == NULL && p != current)
-			return p;
+		else if (p->go[1] == NULL && p->go[0] == NULL && p != m)
+			return p->me;
 
 		// si on peut reculer, on recule
 		else if (p->parent != NULL) {
 			sens = 0;
-			current = p;
+			m = p;
 			p = p->parent;
 		}
 
@@ -336,7 +368,8 @@ struct ev_timeout_node *ev_timeout_get_next(struct ev_timeout_node *current) {
 
 /* get prev node */
 struct ev_timeout_node *ev_timeout_get_prev(struct ev_timeout_node *current) {
-	struct ev_timeout_node *p;
+	struct ev_timeout_basic_node *m;
+	struct ev_timeout_basic_node *p;
 	int sens = 1;
 
 	// on verifie si on peut aller a gauche,
@@ -345,33 +378,34 @@ struct ev_timeout_node *ev_timeout_get_prev(struct ev_timeout_node *current) {
 	//   -> on ne peut pas si a droite c'est NULL ou si on e viens
 	// sinon on recule
 	//
-	p = current;
+	p = &current->leaf;
+	m = p;
 	while (p != NULL) {
 
 		// on peut aller a droite si
 		//  - on avance
 		//  - c'est pas NULL
 		//  - on en viens pas
-		if (sens == 1 && p->go[1] != NULL && p->go[1] != current)
+		if (sens == 1 && p->go[1] != NULL && p->go[1] != m)
 			p = p->go[1];
 
 		// on peut aller a gauche, si 
 		//  - c'est pas NULL
 		//  - on en viens pas
-		else if (p->go[0] != NULL && p->go[0] != current) {
+		else if (p->go[0] != NULL && p->go[0] != m) {
 			sens = 1;
 			p = p->go[0];
 		}
 
 		// si on ne peut plus avancer, c'est que on a trouve
 		// le noeud suivant
-		else if (p->go[1] == NULL && p->go[0] == NULL && p != current)
-			return p;
+		else if (p->go[1] == NULL && p->go[0] == NULL && p != m)
+			return p->me;
 
 		// si on peut reculer, on recule
 		else if (p->parent != NULL) {
 			sens = 0;
-			current = p;
+			m = p;
 			p = p->parent;
 		}
 
