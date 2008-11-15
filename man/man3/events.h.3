@@ -1,0 +1,660 @@
+.TH "events.h" 3 "15 Nov 2008" "Version 0" "events" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+events.h \- 
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <stdlib.h>\fP
+.br
+\fC#include <time.h>\fP
+.br
+\fC#include <sys/socket.h>\fP
+.br
+\fC#include <sys/time.h>\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBev_signals_register\fP"
+.br
+.ti -1c
+.RI "struct \fBev_timeout_basic_node\fP"
+.br
+.ti -1c
+.RI "struct \fBev_timeout_node\fP"
+.br
+.ti -1c
+.RI "struct \fBev_poller\fP"
+.br
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef void(*) \fBev_timeout_run\fP (struct timeval *tv, struct \fBev_timeout_node\fP *self, void *)"
+.br
+.ti -1c
+.RI "typedef void(*) \fBev_signal_run\fP (int signal, void *arg)"
+.br
+.ti -1c
+.RI "typedef void(*) \fBev_poll_cb_wakeup\fP (int fd, void *arg)"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBev_errors\fP { \fBEV_OK\fP =  0, \fBEV_ERR_NOT_PORT\fP =  -0x002, \fBEV_ERR_NOT_ADDR\fP =  -0x003, \fBEV_ERR_SOCKET\fP =  -0x100, \fBEV_ERR_FCNTL\fP =  -0x101, \fBEV_ERR_SETSOCKO\fP =  -0x102, \fBEV_ERR_BIND\fP =  -0x103, \fBEV_ERR_LISTEN\fP =  -0x104, \fBEV_ERR_ACCEPT\fP =  -0x105, \fBEV_ERR_CALLOC\fP =  -0x106, \fBEV_ERR_SELECT\fP =  -0x107, \fBEV_ERR_SIGACTIO\fP =  -0x108, \fBEV_ERR_MALLOC\fP =  -0x109 }"
+.br
+.ti -1c
+.RI "enum \fBev_mode\fP { \fBEV_POLL_READ\fP =  0, \fBEV_POLL_WRITE\fP =  1 }"
+.br
+.ti -1c
+.RI "enum \fBev_synch\fP { \fBEV_SIGNAL_SYNCH\fP =  0, \fBEV_SIGNAL_ASYNCH\fP =  1 }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "static \fBev_errors\fP \fBev_poll_init\fP (int maxfd, struct \fBev_timeout_basic_node\fP *tmoutbase)"
+.br
+.ti -1c
+.RI "static int \fBev_poll_fd_is_set\fP (int fd, \fBev_mode\fP mode)"
+.br
+.ti -1c
+.RI "static void \fBev_poll_fd_set\fP (int fd, \fBev_mode\fP mode, \fBev_poll_cb_wakeup\fP func, void *arg)"
+.br
+.ti -1c
+.RI "static void \fBev_poll_fd_clr\fP (int fd, \fBev_mode\fP mode)"
+.br
+.ti -1c
+.RI "static void \fBev_poll_fd_zero\fP (\fBev_mode\fP mode)"
+.br
+.ti -1c
+.RI "static \fBev_errors\fP \fBev_poll_poll\fP (void)"
+.br
+.ti -1c
+.RI "\fBev_errors\fP \fBev_signal_add\fP (int signal, \fBev_synch\fP sync, \fBev_signal_run\fP func, void *arg)"
+.br
+.ti -1c
+.RI "static void \fBev_signal_hide\fP (int signal)"
+.br
+.ti -1c
+.RI "static void \fBev_signal_show\fP (int signal)"
+.br
+.ti -1c
+.RI "void \fBev_signal_check_active\fP (void)"
+.br
+.ti -1c
+.RI "\fBev_errors\fP \fBev_socket_bind\fP (char *socket_name, int backlog)"
+.br
+.ti -1c
+.RI "\fBev_errors\fP \fBev_socket_accept\fP (int listen_socket, struct sockaddr_storage *addr)"
+.br
+.ti -1c
+.RI "static void \fBev_timeout_init\fP (struct \fBev_timeout_basic_node\fP *base)"
+.br
+.ti -1c
+.RI "\fBev_timeout_node\fP * \fBev_timeout_new\fP (void)"
+.br
+.ti -1c
+.RI "static void \fBev_timeout_init_node\fP (struct \fBev_timeout_node\fP *n)"
+.br
+.ti -1c
+.RI "static void \fBev_timeout_build\fP (struct timeval *tv, \fBev_timeout_run\fP func, void *arg, struct \fBev_timeout_node\fP *node)"
+.br
+.ti -1c
+.RI "\fBev_errors\fP \fBev_timeout_insert\fP (struct \fBev_timeout_basic_node\fP *base, struct \fBev_timeout_node\fP *node)"
+.br
+.ti -1c
+.RI "static \fBev_errors\fP \fBev_timeout_add\fP (struct \fBev_timeout_basic_node\fP *base, struct timeval *tv, \fBev_timeout_run\fP func, void *arg, struct \fBev_timeout_node\fP **node)"
+.br
+.ti -1c
+.RI "void \fBev_timeout_free\fP (struct \fBev_timeout_node\fP *val)"
+.br
+.ti -1c
+.RI "void \fBev_timeout_remove\fP (struct \fBev_timeout_node\fP *val)"
+.br
+.ti -1c
+.RI "static void \fBev_timeout_del\fP (struct \fBev_timeout_node\fP *val)"
+.br
+.ti -1c
+.RI "\fBev_timeout_node\fP * \fBev_timeout_get_min\fP (struct \fBev_timeout_basic_node\fP *base)"
+.br
+.ti -1c
+.RI "\fBev_timeout_node\fP * \fBev_timeout_get_max\fP (struct \fBev_timeout_basic_node\fP *base)"
+.br
+.ti -1c
+.RI "\fBev_timeout_node\fP * \fBev_timeout_get_next\fP (struct \fBev_timeout_node\fP *current)"
+.br
+.ti -1c
+.RI "\fBev_timeout_node\fP * \fBev_timeout_get_prev\fP (struct \fBev_timeout_node\fP *current)"
+.br
+.ti -1c
+.RI "\fBev_timeout_node\fP * \fBev_timeout_exists\fP (struct \fBev_timeout_basic_node\fP *base, struct timeval *tv)"
+.br
+.ti -1c
+.RI "static void \fBev_timeout_get_tv\fP (struct \fBev_timeout_node\fP *val, struct timeval *tv)"
+.br
+.ti -1c
+.RI "static \fBev_timeout_run\fP \fBev_timeout_get_func\fP (struct \fBev_timeout_node\fP *val)"
+.br
+.ti -1c
+.RI "static void * \fBev_timeout_get_arg\fP (struct \fBev_timeout_node\fP *val)"
+.br
+.ti -1c
+.RI "static void \fBev_timeout_call_func\fP (struct \fBev_timeout_node\fP *val)"
+.br
+.in -1c
+.SS "Variables"
+
+.in +1c
+.ti -1c
+.RI "timeval \fBev_now\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef void(*) \fBev_poll_cb_wakeup\fP(int fd, void *arg)"
+.PP
+Callback prototype for file descriptor event 
+.SS "typedef void(*) \fBev_signal_run\fP(int signal, void *arg)"
+.PP
+Callback prototype for signal event 
+.SS "typedef void(*) \fBev_timeout_run\fP(struct timeval *tv, struct \fBev_timeout_node\fP *self, void *)"
+.PP
+Callback prototype for timeout events 
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBev_errors\fP"
+.PP
+errors codes 
+.PP
+\fBEnumerator: \fP
+.in +1c
+.TP
+\fB\fIEV_OK \fP\fP
+no errors 
+.TP
+\fB\fIEV_ERR_NOT_PORT \fP\fP
+ev_socket_bind: port is not a number 
+.TP
+\fB\fIEV_ERR_NOT_ADDR \fP\fP
+address unavalaible 
+.TP
+\fB\fIEV_ERR_SOCKET \fP\fP
+error with syscall socket 
+.TP
+\fB\fIEV_ERR_FCNTL \fP\fP
+error with syscall fcntl 
+.TP
+\fB\fIEV_ERR_SETSOCKO \fP\fP
+error with syscall setsockopt 
+.TP
+\fB\fIEV_ERR_BIND \fP\fP
+error with syscall bind 
+.TP
+\fB\fIEV_ERR_LISTEN \fP\fP
+error with syscall listen 
+.TP
+\fB\fIEV_ERR_ACCEPT \fP\fP
+error with syscall accept 
+.TP
+\fB\fIEV_ERR_CALLOC \fP\fP
+error with syscall calloc 
+.TP
+\fB\fIEV_ERR_SELECT \fP\fP
+error with syscall select 
+.TP
+\fB\fIEV_ERR_SIGACTIO \fP\fP
+error with syscall sigaction 
+.TP
+\fB\fIEV_ERR_MALLOC \fP\fP
+error with syscall sigaction 
+.SS "enum \fBev_mode\fP"
+.PP
+event mode 
+.PP
+\fBEnumerator: \fP
+.in +1c
+.TP
+\fB\fIEV_POLL_READ \fP\fP
+The file descriptor operation is about read 
+.TP
+\fB\fIEV_POLL_WRITE \fP\fP
+The file descriptor operation is about write 
+.SS "enum \fBev_synch\fP"
+.PP
+define signal event mode 
+.PP
+\fBEnumerator: \fP
+.in +1c
+.TP
+\fB\fIEV_SIGNAL_SYNCH \fP\fP
+define the event signal synchronous 
+.TP
+\fB\fIEV_SIGNAL_ASYNCH \fP\fP
+define the event signal asynchronous 
+.SH "Function Documentation"
+.PP 
+.SS "static void ev_poll_fd_clr (int fd, \fBev_mode\fP mode)\fC [inline, static]\fP"
+.PP
+remove event for a file descriptor
+.PP
+\fBParameters:\fP
+.RS 4
+\fIfd\fP is the removed filedescriptor
+.br
+\fImode\fP is for choosing event register 
+.RE
+.PP
+
+.SS "static int ev_poll_fd_is_set (int fd, \fBev_mode\fP mode)\fC [inline, static]\fP"
+.PP
+check if file descriptor is set
+.PP
+\fBParameters:\fP
+.RS 4
+\fIfd\fP is the watched filedescriptor
+.br
+\fImode\fP is for choosing event register
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Return true if the file descriptor is set, else return false 
+.RE
+.PP
+
+.SS "static void ev_poll_fd_set (int fd, \fBev_mode\fP mode, \fBev_poll_cb_wakeup\fP func, void * arg)\fC [inline, static]\fP"
+.PP
+add event for a file descriptor
+.PP
+\fBParameters:\fP
+.RS 4
+\fIfd\fP is the watched filedescriptor
+.br
+\fImode\fP is for choosing event register
+.br
+\fIfunc\fP is event function pointer
+.br
+\fIarg\fP is easy argument gived to event function 
+.RE
+.PP
+
+.SS "static void ev_poll_fd_zero (\fBev_mode\fP mode)\fC [inline, static]\fP"
+.PP
+clear all events
+.PP
+\fBParameters:\fP
+.RS 4
+\fImode\fP is for choosing event register 
+.RE
+.PP
+
+.SS "static \fBev_errors\fP ev_poll_init (int maxfd, struct \fBev_timeout_basic_node\fP * tmoutbase)\fC [inline, static]\fP"
+.PP
+init events system
+.PP
+\fBParameters:\fP
+.RS 4
+\fImaxfd\fP contain the number of file descriptor used for the poller
+.br
+\fItmoutbase\fP contain the base of the timeouts tree
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+On success, return 0, else return error code < 0. The error can be EV_ERR_CALLOC. 
+.RE
+.PP
+
+.SS "static \fBev_errors\fP ev_poll_poll (void)\fC [inline, static]\fP"
+.PP
+run poller
+.PP
+\fBReturns:\fP
+.RS 4
+On success, return 0, else return error code < 0. The error can be EV_ERR_SELECT. 
+.RE
+.PP
+
+.SS "\fBev_errors\fP ev_signal_add (int signal, \fBev_synch\fP sync, \fBev_signal_run\fP func, void * arg)"
+.PP
+add signal
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsignal\fP is signal number (see /usr/include/bits/signum.h on common linux systems)
+.br
+\fIsync\fP is the synchronous mode. with EV_SIGNAL_SYNCH the callback is called when the signal is received. With the EV_SIGNAL_ASYNCH, the callback wait for a ev_signal_check_active functioncall.
+.br
+\fIfunc\fP is signal function pointer
+.br
+\fIarg\fP is easy argument gived to signal function
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+EV_OK if ok, else < 0 if an error is occured. The error can be EV_ERR_SIGACTIO 
+.RE
+.PP
+
+.SS "void ev_signal_check_active (void)"
+.PP
+check for active signal and call callbacks 
+.SS "static void ev_signal_hide (int signal)\fC [inline, static]\fP"
+.PP
+hide signal: the signal is ignored. If run queue contain previous signals theses are deleted
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsignal\fP is signal number (see /usr/include/bits/signum.h on common linux systems) 
+.RE
+.PP
+
+.SS "static void ev_signal_show (int signal)\fC [inline, static]\fP"
+.PP
+show signal: the signal is now consider
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsignal\fP is signal number (see /usr/include/bits/signum.h on common linux systems) 
+.RE
+.PP
+
+.SS "\fBev_errors\fP ev_socket_accept (int listen_socket, struct sockaddr_storage * addr)"
+.PP
+accept connection
+.PP
+\fBParameters:\fP
+.RS 4
+\fIlisten_socket\fP is a socket that has been created with ev_socket_bind and is listening for connections. (see man accept)
+.br
+\fIaddr\fP A pointer to the preallocated struct. This struct is filled with a client address.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+if ok, return new file desciptor. else return <0. the errors can be EV_ERR_ACCEPT, EV_ERR_FCNTL or EV_ERR_SETSOCKO. 
+.RE
+.PP
+
+.SS "\fBev_errors\fP ev_socket_bind (char * socket_name, int backlog)"
+.PP
+create and bind a socket
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsocket_name\fP like '<ipv4>:<port>' '<ipv6>:<port>' or 'socket_unix_file'
+.br
+\fIbacklog\fP The backlog parameter defines the maximum length the queue of pending connections may grow to. (see man listen)
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+if ok, return the file descriptor, else return < 0. the errors can be: EV_ERR_NOT_PORT, EV_ERR_NOT_ADDR, EV_ERR_SOCKET, EV_ERR_FCNTL, EV_ERR_SETSOCKO, EV_ERR_BIND or EV_ERR_LISTEN. 
+.RE
+.PP
+
+.SS "static \fBev_errors\fP ev_timeout_add (struct \fBev_timeout_basic_node\fP * base, struct timeval * tv, \fBev_timeout_run\fP func, void * arg, struct \fBev_timeout_node\fP ** node)\fC [inline, static]\fP"
+.PP
+insert timeout
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbase\fP preallocated base node
+.br
+\fItv\fP the hour of event must be wake up
+.br
+\fIfunc\fP the timeout callback called
+.br
+\fIarg\fP a easy argument gived to timeout function
+.br
+\fInode\fP if node != NULL, a pointer to the new timeout node is set;
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+EV_OK if ok, < 0 if an error is occured. the error code can be EV_ERR_MALLOC 
+.RE
+.PP
+
+.SS "static void ev_timeout_build (struct timeval * tv, \fBev_timeout_run\fP func, void * arg, struct \fBev_timeout_node\fP * node)\fC [inline, static]\fP"
+.PP
+set timeout information into node
+.PP
+\fBParameters:\fP
+.RS 4
+\fItv\fP date of the timeout
+.br
+\fIfunc\fP callback
+.br
+\fIarg\fP easy arg
+.br
+\fInode\fP preallocated node 
+.RE
+.PP
+
+.SS "static void ev_timeout_call_func (struct \fBev_timeout_node\fP * val)\fC [inline, static]\fP"
+.PP
+call function
+.PP
+\fBParameters:\fP
+.RS 4
+\fIval\fP preallocated base node 
+.RE
+.PP
+
+.SS "static void ev_timeout_del (struct \fBev_timeout_node\fP * val)\fC [inline, static]\fP"
+.PP
+remove timeout node from tree and free it
+.PP
+\fBParameters:\fP
+.RS 4
+\fIval\fP is a pointer to the freed node 
+.RE
+.PP
+
+.SS "struct \fBev_timeout_node\fP* ev_timeout_exists (struct \fBev_timeout_basic_node\fP * base, struct timeval * tv)"
+.PP
+check if the time exist
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbase\fP preallocated base node
+.br
+\fItv\fP time
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+return a pointer to the prev timeout node or NULL if dont exists time 
+.RE
+.PP
+
+.SS "void ev_timeout_free (struct \fBev_timeout_node\fP * val)"
+.PP
+free memory for node
+.PP
+\fBParameters:\fP
+.RS 4
+\fIval\fP is a pointer to the freed node 
+.RE
+.PP
+
+.SS "static void* ev_timeout_get_arg (struct \fBev_timeout_node\fP * val)\fC [inline, static]\fP"
+.PP
+extract value
+.PP
+\fBParameters:\fP
+.RS 4
+\fIval\fP preallocated base node
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+the easy argument 
+.RE
+.PP
+
+.SS "static \fBev_timeout_run\fP ev_timeout_get_func (struct \fBev_timeout_node\fP * val)\fC [inline, static]\fP"
+.PP
+extract function
+.PP
+\fBParameters:\fP
+.RS 4
+\fIval\fP preallocated base node
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+a pointer to the callback 
+.RE
+.PP
+
+.SS "struct \fBev_timeout_node\fP* ev_timeout_get_max (struct \fBev_timeout_basic_node\fP * base)"
+.PP
+get minx time
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbase\fP preallocated base node
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+return a pointer to the max timeout node 
+.RE
+.PP
+
+.SS "struct \fBev_timeout_node\fP* ev_timeout_get_min (struct \fBev_timeout_basic_node\fP * base)"
+.PP
+get min time
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbase\fP preallocated base node
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+return a pointer to the min timeout node 
+.RE
+.PP
+
+.SS "struct \fBev_timeout_node\fP* ev_timeout_get_next (struct \fBev_timeout_node\fP * current)"
+.PP
+get next node
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcurrent\fP preallocated base node
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+return a pointer to the next timeout node 
+.RE
+.PP
+
+.SS "struct \fBev_timeout_node\fP* ev_timeout_get_prev (struct \fBev_timeout_node\fP * current)"
+.PP
+get prev node
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcurrent\fP preallocated base node
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+return a pointer to the prev timeout node 
+.RE
+.PP
+
+.SS "static void ev_timeout_get_tv (struct \fBev_timeout_node\fP * val, struct timeval * tv)\fC [inline, static]\fP"
+.PP
+extract timeval
+.PP
+\fBParameters:\fP
+.RS 4
+\fIval\fP preallocated base node
+.br
+\fItv\fP the timeout date is stored here 
+.RE
+.PP
+
+.SS "static void ev_timeout_init (struct \fBev_timeout_basic_node\fP * base)\fC [inline, static]\fP"
+.PP
+init timeouts tree base
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbase\fP preallocated base node 
+.RE
+.PP
+
+.SS "static void ev_timeout_init_node (struct \fBev_timeout_node\fP * n)\fC [inline, static]\fP"
+.PP
+initialize node
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP node for initialization 
+.RE
+.PP
+
+.SS "\fBev_errors\fP ev_timeout_insert (struct \fBev_timeout_basic_node\fP * base, struct \fBev_timeout_node\fP * node)"
+.PP
+insert timeout node into tree
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbase\fP preallocated base node
+.br
+\fInode\fP preallocated inserting
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+EV_OK if ok, < 0 if an error is occured. the error code can be EV_ERR_MALLOC 
+.RE
+.PP
+
+.SS "struct \fBev_timeout_node\fP* ev_timeout_new (void)"
+.PP
+allocate memory for new timeout node
+.PP
+\fBReturns:\fP
+.RS 4
+ptr on allocated node, NULL if error 
+.RE
+.PP
+
+.SS "void ev_timeout_remove (struct \fBev_timeout_node\fP * val)"
+.PP
+remove timeout node from tree
+.PP
+\fBParameters:\fP
+.RS 4
+\fIval\fP is a pointer to the freed node 
+.RE
+.PP
+
+.SH "Variable Documentation"
+.PP 
+.SS "struct timeval \fBev_now\fP"
+.PP
+Contain the current time 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for events from the source code.
