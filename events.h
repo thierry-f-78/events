@@ -428,6 +428,11 @@ void ev_timeout_free(struct ev_timeout_node *val);
  */
 void ev_timeout_remove(struct ev_timeout_node *val);
 
+/**
+ * remove timeout node from tree and free it
+ *
+ * @param val   is a pointer to the freed node
+ */
 static inline void ev_timeout_del(struct ev_timeout_node *val) {
 	ev_timeout_remove(val);
 	ev_timeout_free(val);
