@@ -78,8 +78,10 @@ ev_errors ev_timeout_add(struct ev_timeout_node *n, struct timeval *tv,
 			// on choisis si on va vers le haut ou le bas
 			idx = ( date & mask2nextbit(n->mask) ) != 0x0ULL;
 
-			if (n->go[idx] == NULL) // on est arrivé au bout
+			if (n->go[idx] == NULL) { // on est arrivé au bout
+				getpid();
 				break;
+			}
 
 			n = n->go[idx];
 		}
@@ -169,7 +171,7 @@ ev_errors ev_timeout_add(struct ev_timeout_node *n, struct timeval *tv,
 void ev_timeout_del(struct ev_timeout_node *val) {
 	struct ev_timeout_node *n; // parent of deleted node
 	struct ev_timeout_node *p; // prent of parent node
-	struct ev_timeout_node *b; // broser of deleted node
+	struct ev_timeout_node *b; // brother of deleted node
 
 	/* initial status:     after deletion status:
 	 *
@@ -191,7 +193,7 @@ void ev_timeout_del(struct ev_timeout_node *val) {
 	// si p est NULL, c'est que l'on est au bout
 	if (p == NULL) {
 
-		// get broser
+		// get brother
 		if (n->go[0] == val)
 			n->go[0] = NULL;
 		else
@@ -201,13 +203,13 @@ void ev_timeout_del(struct ev_timeout_node *val) {
 	// 
 	else {
 
-		// get broser
+		// get brother
 		if (n->go[0] == val)
 			b = n->go[1];
 		else
 			b = n->go[0];
 
-		// extend broser mask
+		// extend brother mask
 		b->mask |= n->mask;
 
 		// change links
@@ -219,6 +221,7 @@ void ev_timeout_del(struct ev_timeout_node *val) {
 
 		free(n);
 	}
+	free(val);
 }
 
 /* get time */
