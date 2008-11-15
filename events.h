@@ -339,14 +339,27 @@ static inline void ev_timeout_init(struct ev_timeout_basic_node *base) {
 }
 
 /**
- * allocate memory for new timeout node, if node != NULL
- * just initialize node
- *
- * @param
+ * allocate memory for new timeout node
  *
  * @return   ptr on allocated node, NULL if error
  */
-struct ev_timeout_node *ev_timeout_new(struct ev_timeout_node *node);
+struct ev_timeout_node *ev_timeout_new(void);
+
+/**
+ * initialize node
+ *
+ * @param n  node for initialization
+ */
+static inline void ev_timeout_init_node(struct ev_timeout_node *n) {
+	n->node.go[0]  = NULL;
+	n->node.go[1]  = NULL;
+	n->node.parent = NULL;
+	n->leaf.go[0]  = NULL;
+	n->leaf.go[1]  = NULL;
+	n->leaf.parent = NULL;
+	n->node.me     = n;
+	n->leaf.me     = n;
+}
 
 /**
  * set timeout information into node
@@ -404,9 +417,10 @@ static inline ev_errors ev_timeout_add(struct ev_timeout_basic_node *base,
                                        struct ev_timeout_node **node) {
 	struct ev_timeout_node *n;
 
-	n = ev_timeout_new(NULL);
+	n = ev_timeout_new();
 	if (n == NULL)
 		return EV_ERR_MALLOC;
+	ev_timeout_init_node(n);
 	ev_timeout_build(tv, func, arg, n);
 	ev_timeout_insert(base, n);
 	if (node != NULL)

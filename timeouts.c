@@ -45,20 +45,8 @@ static inline unsigned long long int
 }
 
 // nouveau noeud
-struct ev_timeout_node *ev_timeout_new(struct ev_timeout_node *node) {
-	struct ev_timeout_node *t;
-
-	if (node == NULL) {
-		t = (struct ev_timeout_node *)calloc(1, sizeof(struct ev_timeout_node));
-		if (t == NULL)	
-			return NULL;
-	}
-	else
-		t = node;
-
-	t->node.me = t;
-	t->leaf.me = t;
-	return t;
+struct ev_timeout_node *ev_timeout_new(void) {
+	return (struct ev_timeout_node *)calloc(1, sizeof(struct ev_timeout_node));
 }
 
 // insert
