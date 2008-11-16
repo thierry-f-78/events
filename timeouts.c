@@ -195,43 +195,73 @@ void ev_timeout_remove(struct ev_timeout_node *val) {
 	 *       [b]     [m]
 	 */
 
-	// me
-	m = &val->leaf;
-
-	// get parent
-	n = m->parent;
-
-	// get parent of parent
-	p = n->parent;
-
-	// si p est NULL, c'est que l'on est au bout
-	if (p == NULL) {
-
-		// get brother
-		if (n->go[0] == m)
-			n->go[0] = NULL;
-		else
-			n->go[1] = NULL;
+	// cas d'une liste chainée ou l'on n'est pas le noeud de debut
+	if (val->leaf.parent == NULL) {
+		val->next->prev = val->prev;
+		val->prev->next = val->next;
+		// set for no swapping
+		n = &val->node;
 	}
 
-	// 
+	// cas d'une liste chainée ou l'on est le noeud de debut
+	else if (val->next != val && val->leaf.parent != NULL) {
+		// copy node values
+		val->next->leaf.date   = val->leaf.date;
+		val->next->leaf.mask   = val->leaf.mask;
+		// relink next node
+		val->next->leaf.parent = val->leaf.parent;
+		if (val->leaf.parent->go[0] == &val->leaf)
+			val->leaf.parent->go[0] = &val->next->leaf;
+		else
+			val->leaf.parent->go[1] = &val->next->leaf;
+		// unlink current node
+		val->next->prev            = val->prev;
+		val->prev->next            = val->next;
+		// set this for swapping node
+		n = &val->next->node;
+	}
+
+	// sinon, o supprime une feuille
 	else {
 
-		// get brother
-		if (n->go[0] == m)
-			b = n->go[1];
-		else
-			b = n->go[0];
-
-		// extend brother mask
-		b->mask |= n->mask;
-
-		// change links
-		b->parent = p;
-		if (p->go[0] == n)
-			p->go[0] = b;
-		else
-			p->go[1] = b;
+		// me
+		m = &val->leaf;
+	
+		// get parent
+		n = m->parent;
+	
+		// get parent of parent
+		p = n->parent;
+	
+		// si p est NULL, c'est que l'on est au bout
+		if (p == NULL) {
+	
+			// get brother
+			if (n->go[0] == m)
+				n->go[0] = NULL;
+			else
+				n->go[1] = NULL;
+		}
+	
+		// sinon on recupere le noeud frangin
+		else {
+	
+			// get brother
+			if (n->go[0] == m)
+				b = n->go[1];
+			else
+				b = n->go[0];
+	
+			// extend brother mask
+			b->mask |= n->mask;
+	
+			// change links
+			b->parent = p;
+			if (p->go[0] == n)
+				p->go[0] = b;
+			else
+				p->go[1] = b;
+		}
 	}
 
 	// swap unused node (n) with deleted node (val->node)
