@@ -419,6 +419,11 @@ struct ev_timeout_node *ev_timeout_get_prev(struct ev_timeout_node *current) {
 	struct ev_timeout_basic_node *p;
 	int sens = 1;
 
+	// si on est dans une liste chainée et que ce n'est pas le
+	// premier (dernier) element, on recule dans la liste
+	if (current->leaf.parent == NULL)
+		return current->prev;
+	
 	// on verifie si on peut aller a gauche,
 	//   -> on ne peut pas si a gauche c'est NULL, ou si on en viens
 	// sinon on regarde si on peut aller a droite
@@ -445,9 +450,9 @@ struct ev_timeout_node *ev_timeout_get_prev(struct ev_timeout_node *current) {
 		}
 
 		// si on ne peut plus avancer, c'est que on a trouve
-		// le noeud suivant
+		// le noeud suivant, on retourne le dernier element de la liste
 		else if (p->go[1] == NULL && p->go[0] == NULL && p != m)
-			return p->me;
+			return p->me->prev;
 
 		// si on peut reculer, on recule
 		else if (p->parent != NULL) {
