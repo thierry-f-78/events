@@ -241,6 +241,9 @@ void ev_timeout_remove(struct ev_timeout_node *val) {
 				n->go[0] = NULL;
 			else
 				n->go[1] = NULL;
+
+			// set for no swapping
+			n = &val->node;
 		}
 	
 		// sinon on recupere le noeud frangin
