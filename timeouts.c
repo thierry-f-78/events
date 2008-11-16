@@ -318,7 +318,7 @@ struct ev_timeout_node *ev_timeout_exists(struct ev_timeout_basic_node *base,
 
 }
 
-/* get max time */
+/* get min time */
 struct ev_timeout_node *ev_timeout_get_min(struct ev_timeout_basic_node *base) {
 	if (base->go[0] != NULL)
 		base = base->go[0];
@@ -329,10 +329,11 @@ struct ev_timeout_node *ev_timeout_get_min(struct ev_timeout_basic_node *base) {
 		
 	while (base->go[0] != NULL)
 		base = base->go[0];
+	
 	return base->me;
 }
 
-/* get min time */
+/* get max time */
 struct ev_timeout_node *ev_timeout_get_max(struct ev_timeout_basic_node *base) {
 	if (base->go[1] != NULL)
 		base = base->go[1];
@@ -343,6 +344,10 @@ struct ev_timeout_node *ev_timeout_get_max(struct ev_timeout_basic_node *base) {
 		
 	while (base->go[1] != NULL)
 		base = base->go[1];
+
+	if (base->me->prev != base->me)
+		return base->me->prev;
+
 	return base->me;
 }
 
