@@ -357,6 +357,17 @@ struct ev_timeout_node *ev_timeout_get_next(struct ev_timeout_node *current) {
 	struct ev_timeout_basic_node *p;
 	int sens = 1;
 
+	// si on est dans une liste chainée et que ce n'est pas le
+	// dernier (premier) element, on avance
+	if (current->next != current && current->next->leaf.parent == NULL)
+		return current->next;
+	
+	// si on est dans une liste chainée et que c'est
+	// le dernier (premier) element, on positionne le noeud qui va bien
+	// pour reprendre le parcours de l'arbre
+	else if (current->next != current && current->next->leaf.parent != NULL)
+		current = current->next;
+
 	// on verifie si on peut aller a gauche,
 	//   -> on ne peut pas si a gauche c'est NULL, ou si on en viens
 	// sinon on regarde si on peut aller a droite
