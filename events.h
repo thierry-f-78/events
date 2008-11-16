@@ -490,6 +490,44 @@ static inline void *ev_timeout_get_arg(struct ev_timeout_node *val) {
 }
 
 /**
+ * set timeout information into node
+ *
+ * @param node  preallocated node
+ *
+ * @param tv    date of the timeout
+ */
+static inline void ev_timeout_set_tv(struct ev_timeout_node *val,
+                                    struct timeval *tv) {
+	val->leaf.date   = (unsigned int)tv->tv_sec;
+	val->leaf.date <<= 32;
+	val->leaf.date  |= (unsigned int)tv->tv_usec;
+}
+
+/**
+ * set function
+ *
+ * @param val    preallocated base node
+ *
+ * @return       a pointer to the callback
+ */
+static inline void ev_timeout_set_func(struct ev_timeout_node *val,
+                                       ev_timeout_run func) {
+	val->func = func;
+}
+
+/**
+ * set value
+ *
+ * @param val    preallocated base node
+ *
+ * @return       the easy argument
+ */
+static inline void ev_timeout_set_arg(struct ev_timeout_node *val,
+                                      void *arg) {
+	val->arg = arg;
+}
+
+/**
  * call function
  *
  * @param val    preallocated base node
