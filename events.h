@@ -129,6 +129,8 @@ struct ev_timeout_basic_node {
 struct ev_timeout_node {
 	struct ev_timeout_basic_node node;
 	struct ev_timeout_basic_node leaf;
+	struct ev_timeout_node *next;
+	struct ev_timeout_node *prev;
 	ev_timeout_run func;
 	void *arg;
 };
@@ -367,6 +369,8 @@ static inline void ev_timeout_build(struct timeval *tv,
 	node->leaf.parent = NULL;
 	node->node.me     = node;
 	node->leaf.me     = node;
+	node->next        = node;
+	node->prev        = node;
 	node->func        = func;
 	node->arg         = arg;
 	node->leaf.date   = (unsigned int)tv->tv_sec;
