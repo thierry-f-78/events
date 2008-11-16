@@ -54,11 +54,14 @@ ev_errors ev_timeout_insert(struct ev_timeout_basic_node *b,
                          struct ev_timeout_node *t) {
 	struct ev_timeout_basic_node *n; // new node
 	struct ev_timeout_basic_node *l; // new leaf
+	struct ev_timeout_basic_node *base;
+	struct ev_timeout_node *c;
 	unsigned char idx;
 
 	// node dispatch
-	n = &t->node;
-	l = &t->leaf;
+	base = b;
+	n    = &t->node;
+	l    = &t->leaf;
 
 	// find insert point
 	while (1) {
@@ -83,9 +86,23 @@ ev_errors ev_timeout_insert(struct ev_timeout_basic_node *b,
 			// on choisis si on va vers le haut ou le bas
 			idx = ( l->date & mask2nextbit(b->mask) ) != 0x0ULL;
 
-			// on est au bout, ou bien c'est un doublon :-(
-			if (b->go[idx] == NULL) 
-				break;
+			// on est au bout
+			if (b->go[idx] == NULL) {
+
+				// on est au bout, on ne fait qu'un ajout
+				if (b == base)
+					break;
+
+				// c'est un doublon
+				else {
+					c = b->me;
+					t->prev = c->prev;
+					t->next = c;
+					c->prev = t;
+					t->prev->next = t;
+					return EV_OK;
+				}
+			}
 
 			// noeud suivant
 			b = b->go[idx];
