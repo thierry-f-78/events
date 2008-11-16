@@ -98,19 +98,13 @@
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structev__timeout__node.html">ev_timeout_node</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8h.html#5352a3b517b40d59f77dbe4a01bec2f0">ev_timeout_new</a> (void)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8h.html#3df4bea23652e1aa0ce4199faf44c6d5">ev_timeout_init_node</a> (struct <a class="el" href="structev__timeout__node.html">ev_timeout_node</a> *n)</td></tr>
-
 <tr><td class="memItemLeft" nowrap align="right" valign="top">static void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8h.html#ab0bff11a2b31b4ee23898a1353778c7">ev_timeout_build</a> (struct timeval *tv, <a class="el" href="events_8h.html#19ce191dceb6a2958939d2773d152fb6">ev_timeout_run</a> func, void *arg, struct <a class="el" href="structev__timeout__node.html">ev_timeout_node</a> *node)</td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="events_8h.html#b7be7974d3e935f5e44ad7af5de60862">ev_errors</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8h.html#44684385a4d2e4bdaf923854ae2c6206">ev_timeout_insert</a> (struct <a class="el" href="structev__timeout__basic__node.html">ev_timeout_basic_node</a> *base, struct <a class="el" href="structev__timeout__node.html">ev_timeout_node</a> *node)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static <a class="el" href="events_8h.html#b7be7974d3e935f5e44ad7af5de60862">ev_errors</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8h.html#b8ca81f4b6e8e9ded0a41558686be883">ev_timeout_add</a> (struct <a class="el" href="structev__timeout__basic__node.html">ev_timeout_basic_node</a> *base, struct timeval *tv, <a class="el" href="events_8h.html#19ce191dceb6a2958939d2773d152fb6">ev_timeout_run</a> func, void *arg, struct <a class="el" href="structev__timeout__node.html">ev_timeout_node</a> **node)</td></tr>
-
 <tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8h.html#dfc370071d342d3976a4ff365c377c5e">ev_timeout_free</a> (struct <a class="el" href="structev__timeout__node.html">ev_timeout_node</a> *val)</td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8h.html#dfe12e20efd6fc20581a8ca14a58565a">ev_timeout_remove</a> (struct <a class="el" href="structev__timeout__node.html">ev_timeout_node</a> *val)</td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8h.html#701474b11908c1d6889528cb72ce7053">ev_timeout_del</a> (struct <a class="el" href="structev__timeout__node.html">ev_timeout_node</a> *val)</td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structev__timeout__node.html">ev_timeout_node</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8h.html#78cc2682bec5bed4b39264b4b5f8ac31">ev_timeout_get_min</a> (struct <a class="el" href="structev__timeout__basic__node.html">ev_timeout_basic_node</a> *base)</td></tr>
 
@@ -679,64 +673,6 @@ create and bind a socket<p>
 
 </div>
 </div><p>
-<a class="anchor" name="b8ca81f4b6e8e9ded0a41558686be883"></a><!-- doxytag: member="events.h::ev_timeout_add" ref="b8ca81f4b6e8e9ded0a41558686be883" args="(struct ev_timeout_basic_node *base, struct timeval *tv, ev_timeout_run func, void *arg, struct ev_timeout_node **node)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">static <a class="el" href="events_8h.html#b7be7974d3e935f5e44ad7af5de60862">ev_errors</a> ev_timeout_add           </td>
-          <td>(</td>
-          <td class="paramtype">struct <a class="el" href="structev__timeout__basic__node.html">ev_timeout_basic_node</a> *&nbsp;</td>
-          <td class="paramname"> <em>base</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">struct timeval *&nbsp;</td>
-          <td class="paramname"> <em>tv</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="events_8h.html#19ce191dceb6a2958939d2773d152fb6">ev_timeout_run</a>&nbsp;</td>
-          <td class="paramname"> <em>func</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">void *&nbsp;</td>
-          <td class="paramname"> <em>arg</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">struct <a class="el" href="structev__timeout__node.html">ev_timeout_node</a> **&nbsp;</td>
-          <td class="paramname"> <em>node</em></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td width="100%"><code> [inline, static]</code></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>
-insert timeout<p>
-<dl compact><dt><b>Parameters:</b></dt><dd>
-  <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>base</em>&nbsp;</td><td>preallocated base node</td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>tv</em>&nbsp;</td><td>the hour of event must be wake up</td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>func</em>&nbsp;</td><td>the timeout callback called</td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>arg</em>&nbsp;</td><td>a easy argument gived to timeout function</td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>node</em>&nbsp;</td><td>if node != NULL, a pointer to the new timeout node is set;</td></tr>
-  </table>
-</dl>
-<dl class="return" compact><dt><b>Returns:</b></dt><dd>EV_OK if ok, &lt; 0 if an error is occured. the error code can be EV_ERR_MALLOC </dd></dl>
-
-</div>
-</div><p>
 <a class="anchor" name="ab0bff11a2b31b4ee23898a1353778c7"></a><!-- doxytag: member="events.h::ev_timeout_build" ref="ab0bff11a2b31b4ee23898a1353778c7" args="(struct timeval *tv, ev_timeout_run func, void *arg, struct ev_timeout_node *node)" -->
 <div class="memitem">
 <div class="memproto">
@@ -808,32 +744,6 @@ call function<p>
 <dl compact><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>val</em>&nbsp;</td><td>preallocated base node </td></tr>
-  </table>
-</dl>
-
-</div>
-</div><p>
-<a class="anchor" name="701474b11908c1d6889528cb72ce7053"></a><!-- doxytag: member="events.h::ev_timeout_del" ref="701474b11908c1d6889528cb72ce7053" args="(struct ev_timeout_node *val)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">static void ev_timeout_del           </td>
-          <td>(</td>
-          <td class="paramtype">struct <a class="el" href="structev__timeout__node.html">ev_timeout_node</a> *&nbsp;</td>
-          <td class="paramname"> <em>val</em>          </td>
-          <td>&nbsp;)&nbsp;</td>
-          <td width="100%"><code> [inline, static]</code></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>
-remove timeout node from tree and free it<p>
-<dl compact><dt><b>Parameters:</b></dt><dd>
-  <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>val</em>&nbsp;</td><td>is a pointer to the freed node </td></tr>
   </table>
 </dl>
 
@@ -1126,32 +1036,6 @@ init timeouts tree base<p>
 
 </div>
 </div><p>
-<a class="anchor" name="3df4bea23652e1aa0ce4199faf44c6d5"></a><!-- doxytag: member="events.h::ev_timeout_init_node" ref="3df4bea23652e1aa0ce4199faf44c6d5" args="(struct ev_timeout_node *n)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">static void ev_timeout_init_node           </td>
-          <td>(</td>
-          <td class="paramtype">struct <a class="el" href="structev__timeout__node.html">ev_timeout_node</a> *&nbsp;</td>
-          <td class="paramname"> <em>n</em>          </td>
-          <td>&nbsp;)&nbsp;</td>
-          <td width="100%"><code> [inline, static]</code></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>
-initialize node<p>
-<dl compact><dt><b>Parameters:</b></dt><dd>
-  <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>n</em>&nbsp;</td><td>node for initialization </td></tr>
-  </table>
-</dl>
-
-</div>
-</div><p>
 <a class="anchor" name="44684385a4d2e4bdaf923854ae2c6206"></a><!-- doxytag: member="events.h::ev_timeout_insert" ref="44684385a4d2e4bdaf923854ae2c6206" args="(struct ev_timeout_basic_node *base, struct ev_timeout_node *node)" -->
 <div class="memitem">
 <div class="memproto">
@@ -1253,7 +1137,7 @@ remove timeout node from tree<p>
 Contain the current time 
 </div>
 </div><p>
-<hr size="1"><address style="align: right;"><small>Generated on Sat Nov 15 18:14:47 2008 for events by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Sun Nov 16 11:16:04 2008 for events by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.5.1 </small></address>
 </body>

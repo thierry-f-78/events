@@ -1,4 +1,4 @@
-.TH "events.h" 3 "15 Nov 2008" "Version 0" "events" \" -*- nroff -*-
+.TH "events.h" 3 "16 Nov 2008" "Version 0" "events" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -103,25 +103,16 @@ events.h \-
 .RI "\fBev_timeout_node\fP * \fBev_timeout_new\fP (void)"
 .br
 .ti -1c
-.RI "static void \fBev_timeout_init_node\fP (struct \fBev_timeout_node\fP *n)"
-.br
-.ti -1c
 .RI "static void \fBev_timeout_build\fP (struct timeval *tv, \fBev_timeout_run\fP func, void *arg, struct \fBev_timeout_node\fP *node)"
 .br
 .ti -1c
 .RI "\fBev_errors\fP \fBev_timeout_insert\fP (struct \fBev_timeout_basic_node\fP *base, struct \fBev_timeout_node\fP *node)"
 .br
 .ti -1c
-.RI "static \fBev_errors\fP \fBev_timeout_add\fP (struct \fBev_timeout_basic_node\fP *base, struct timeval *tv, \fBev_timeout_run\fP func, void *arg, struct \fBev_timeout_node\fP **node)"
-.br
-.ti -1c
 .RI "void \fBev_timeout_free\fP (struct \fBev_timeout_node\fP *val)"
 .br
 .ti -1c
 .RI "void \fBev_timeout_remove\fP (struct \fBev_timeout_node\fP *val)"
-.br
-.ti -1c
-.RI "static void \fBev_timeout_del\fP (struct \fBev_timeout_node\fP *val)"
 .br
 .ti -1c
 .RI "\fBev_timeout_node\fP * \fBev_timeout_get_min\fP (struct \fBev_timeout_basic_node\fP *base)"
@@ -405,29 +396,6 @@ if ok, return the file descriptor, else return < 0. the errors can be: EV_ERR_NO
 .RE
 .PP
 
-.SS "static \fBev_errors\fP ev_timeout_add (struct \fBev_timeout_basic_node\fP * base, struct timeval * tv, \fBev_timeout_run\fP func, void * arg, struct \fBev_timeout_node\fP ** node)\fC [inline, static]\fP"
-.PP
-insert timeout
-.PP
-\fBParameters:\fP
-.RS 4
-\fIbase\fP preallocated base node
-.br
-\fItv\fP the hour of event must be wake up
-.br
-\fIfunc\fP the timeout callback called
-.br
-\fIarg\fP a easy argument gived to timeout function
-.br
-\fInode\fP if node != NULL, a pointer to the new timeout node is set;
-.RE
-.PP
-\fBReturns:\fP
-.RS 4
-EV_OK if ok, < 0 if an error is occured. the error code can be EV_ERR_MALLOC 
-.RE
-.PP
-
 .SS "static void ev_timeout_build (struct timeval * tv, \fBev_timeout_run\fP func, void * arg, struct \fBev_timeout_node\fP * node)\fC [inline, static]\fP"
 .PP
 set timeout information into node
@@ -451,16 +419,6 @@ call function
 \fBParameters:\fP
 .RS 4
 \fIval\fP preallocated base node 
-.RE
-.PP
-
-.SS "static void ev_timeout_del (struct \fBev_timeout_node\fP * val)\fC [inline, static]\fP"
-.PP
-remove timeout node from tree and free it
-.PP
-\fBParameters:\fP
-.RS 4
-\fIval\fP is a pointer to the freed node 
 .RE
 .PP
 
@@ -600,16 +558,6 @@ init timeouts tree base
 \fBParameters:\fP
 .RS 4
 \fIbase\fP preallocated base node 
-.RE
-.PP
-
-.SS "static void ev_timeout_init_node (struct \fBev_timeout_node\fP * n)\fC [inline, static]\fP"
-.PP
-initialize node
-.PP
-\fBParameters:\fP
-.RS 4
-\fIn\fP node for initialization 
 .RE
 .PP
 
