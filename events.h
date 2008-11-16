@@ -346,22 +346,6 @@ static inline void ev_timeout_init(struct ev_timeout_basic_node *base) {
 struct ev_timeout_node *ev_timeout_new(void);
 
 /**
- * initialize node
- *
- * @param n  node for initialization
- */
-static inline void ev_timeout_init_node(struct ev_timeout_node *n) {
-	n->node.go[0]  = NULL;
-	n->node.go[1]  = NULL;
-	n->node.parent = NULL;
-	n->leaf.go[0]  = NULL;
-	n->leaf.go[1]  = NULL;
-	n->leaf.parent = NULL;
-	n->node.me     = n;
-	n->leaf.me     = n;
-}
-
-/**
  * set timeout information into node
  *
  * @param tv    date of the timeout
@@ -375,6 +359,14 @@ static inline void ev_timeout_init_node(struct ev_timeout_node *n) {
 static inline void ev_timeout_build(struct timeval *tv,
                                     ev_timeout_run func, void *arg,
                                     struct ev_timeout_node *node) {
+	node->node.go[0]  = NULL;
+	node->node.go[1]  = NULL;
+	node->node.parent = NULL;
+	node->leaf.go[0]  = NULL;
+	node->leaf.go[1]  = NULL;
+	node->leaf.parent = NULL;
+	node->node.me     = node;
+	node->leaf.me     = node;
 	node->func        = func;
 	node->arg         = arg;
 	node->leaf.date   = (unsigned int)tv->tv_sec;
