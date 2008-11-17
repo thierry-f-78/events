@@ -1,4 +1,4 @@
-.TH "events.h" 3 "16 Nov 2008" "Version 0" "events" \" -*- nroff -*-
+.TH "events.h" 3 "17 Nov 2008" "Version 0" "events" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -137,6 +137,15 @@ events.h \-
 .br
 .ti -1c
 .RI "static void * \fBev_timeout_get_arg\fP (struct \fBev_timeout_node\fP *val)"
+.br
+.ti -1c
+.RI "static void \fBev_timeout_set_tv\fP (struct \fBev_timeout_node\fP *val, struct timeval *tv)"
+.br
+.ti -1c
+.RI "static void \fBev_timeout_set_func\fP (struct \fBev_timeout_node\fP *val, \fBev_timeout_run\fP func)"
+.br
+.ti -1c
+.RI "static void \fBev_timeout_set_arg\fP (struct \fBev_timeout_node\fP *val, void *arg)"
 .br
 .ti -1c
 .RI "static void \fBev_timeout_call_func\fP (struct \fBev_timeout_node\fP *val)"
@@ -385,7 +394,7 @@ create and bind a socket
 .PP
 \fBParameters:\fP
 .RS 4
-\fIsocket_name\fP like '<ipv4>:<port>' '<ipv6>:<port>' or 'socket_unix_file'
+\fIsocket_name\fP like '<ipv4>:<port>' '<ipv6>:<port>', 'socket_unix_file' or NULL. If NULL, bind is set to socket 0
 .br
 \fIbacklog\fP The backlog parameter defines the maximum length the queue of pending connections may grow to. (see man listen)
 .RE
@@ -595,6 +604,48 @@ remove timeout node from tree
 \fBParameters:\fP
 .RS 4
 \fIval\fP is a pointer to the freed node 
+.RE
+.PP
+
+.SS "static void ev_timeout_set_arg (struct \fBev_timeout_node\fP * val, void * arg)\fC [inline, static]\fP"
+.PP
+set value
+.PP
+\fBParameters:\fP
+.RS 4
+\fIval\fP preallocated base node
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+the easy argument 
+.RE
+.PP
+
+.SS "static void ev_timeout_set_func (struct \fBev_timeout_node\fP * val, \fBev_timeout_run\fP func)\fC [inline, static]\fP"
+.PP
+set function
+.PP
+\fBParameters:\fP
+.RS 4
+\fIval\fP preallocated base node
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+a pointer to the callback 
+.RE
+.PP
+
+.SS "static void ev_timeout_set_tv (struct \fBev_timeout_node\fP * val, struct timeval * tv)\fC [inline, static]\fP"
+.PP
+set timeout information into node
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP preallocated node
+.br
+\fItv\fP date of the timeout 
 .RE
 .PP
 

@@ -295,7 +295,8 @@ void ev_signal_check_active(void);
 /**
  * create and bind a socket 
  *
- * @param socket_name  like "<ipv4>:<port>" "<ipv6>:<port>" or "socket_unix_file"
+ * @param socket_name  like "<ipv4>:<port>" "<ipv6>:<port>", "socket_unix_file"
+ *                     or NULL. If NULL, bind is set to socket 0
  *
  * @param backlog      The backlog parameter defines the maximum length the queue
  *                     of pending connections may grow to. (see man listen)
