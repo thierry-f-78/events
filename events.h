@@ -230,11 +230,16 @@ static inline void ev_poll_fd_zero(ev_mode mode) {
 /**
  * run poller
  *
- * @return   On success, return 0, else return error code < 0.
- *           The error can be EV_ERR_SELECT.
+ * @param dont_return  if dont_return == 1, the function never return
+ * @return             On success, return 0, else return error code < 0.
+ *                     The error can be EV_ERR_SELECT.
  */
-static inline ev_errors ev_poll_poll(void) {
-	return ev_poll.poll();
+static inline ev_errors ev_poll_poll(int dont_return) {
+	int ret;
+	do {
+		ret = ev_poll.poll();
+	} while(dont_return);
+	return ret;
 }
 
 
