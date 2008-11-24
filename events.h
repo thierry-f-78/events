@@ -69,7 +69,13 @@ typedef enum {
 	EV_ERR_SIGACTIO = -0x108,
 
 	/** error with syscall sigaction */
-	EV_ERR_MALLOC   = -0x109
+	EV_ERR_MALLOC   = -0x109,
+
+	/** error with syscall setsockopt */
+	EV_ERR_GETSOCKO = -0x10a,
+
+	/** error with syscall setsockopt */
+	EV_ERR_CONNECT  = -0x10b
 
 } ev_errors;
 
@@ -291,6 +297,29 @@ void ev_signal_check_active(void);
 * SOCKETS
 *
 ****************************************************************************/
+
+/** 
+ * create and connect socket
+ *
+ * @param socket_name  like "<ipv4>:<port>" "<ipv6>:<port>", "socket_unix_file"
+ *                     or NULL. If NULL, bind is set to socket 0
+ *
+ * @return             if ok, return the file descriptor, else return < 0. the
+ *                     errors can be: EV_ERR_NOT_PORT, EV_ERR_NOT_ADDR,
+ *                     EV_ERR_SOCKET, EV_ERR_FCNTL, EV_ERR_SETSOCKO,
+ *                     EV_ERR_CONNECT.
+ */
+ev_errors ev_socket_connect(char *socket_name);
+
+/**
+ * finish socket connexion and check result
+ *
+ * @param fd  the checked file descriptor
+ *
+ * @return    EV_OK if ok else < 0. the errors can be: EV_ERR_GETSOCKO or
+ *            EV_ERR_CONNECT
+ */
+ev_errors ev_socket_connect_check(int fd);
 
 /**
  * create and bind a socket 
