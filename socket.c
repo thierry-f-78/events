@@ -120,7 +120,7 @@ ev_errors ev_socket_connect(char *socket_name) {
 
 	// set non block opt
 	ret_code = fcntl(listen_socket, F_SETFL, O_NONBLOCK);
-	if (ret_code == -1) {
+	if (ret_code < 0) {
 		close(listen_socket);
 		return EV_ERR_FCNTL;
 	}
@@ -129,7 +129,7 @@ ev_errors ev_socket_connect(char *socket_name) {
 	if (conf_socket_type == AF_INET6 || conf_socket_type == AF_INET ) {
 		ret_code = setsockopt(listen_socket, IPPROTO_TCP, TCP_NODELAY,
 		                      (char *)&one, sizeof(one));
-		if (ret_code == -1) {
+		if (ret_code < 0) {
 			close(listen_socket);
 			return EV_ERR_SETSOCKO;
 		}
@@ -139,7 +139,7 @@ ev_errors ev_socket_connect(char *socket_name) {
 	if (conf_socket_type == AF_INET6 || conf_socket_type == AF_INET ) {
 		ret_code = setsockopt(listen_socket, SOL_SOCKET, SO_REUSEADDR,
 		                      (char *)&one, sizeof(one));
-		if (ret_code == -1) {
+		if (ret_code < 0) {
 			close(listen_socket);
 			return EV_ERR_SETSOCKO;
 		}
@@ -166,7 +166,7 @@ ev_errors ev_socket_connect(char *socket_name) {
 				                   sizeof(struct sockaddr_un));
 				break;
 		}
-		if (ret_code == -1 && errno != EINPROGRESS){
+		if (ret_code < 0 && errno != EINPROGRESS){
 			close(listen_socket);
 			return EV_ERR_CONNECT;
 		}
@@ -290,7 +290,7 @@ ev_errors ev_socket_bind(char *socket_name, int backlog) {
 
 	// set non block opt
 	ret_code = fcntl(listen_socket, F_SETFL, O_NONBLOCK);
-	if (ret_code == -1) {
+	if (ret_code < 0) {
 		close(listen_socket);
 		return EV_ERR_FCNTL;
 	}
@@ -299,7 +299,7 @@ ev_errors ev_socket_bind(char *socket_name, int backlog) {
 	if (conf_socket_type == AF_INET6 || conf_socket_type == AF_INET ) {
 		ret_code = setsockopt(listen_socket, IPPROTO_TCP, TCP_NODELAY,
 		                      (char *)&one, sizeof(one));
-		if (ret_code == -1) {
+		if (ret_code < 0) {
 			close(listen_socket);
 			return EV_ERR_SETSOCKO;
 		}
@@ -309,7 +309,7 @@ ev_errors ev_socket_bind(char *socket_name, int backlog) {
 	if (conf_socket_type == AF_INET6 || conf_socket_type == AF_INET ) {
 		ret_code = setsockopt(listen_socket, SOL_SOCKET, SO_REUSEADDR,
 		                      (char *)&one, sizeof(one));
-		if (ret_code == -1) {
+		if (ret_code < 0) {
 			close(listen_socket);
 			return EV_ERR_SETSOCKO;
 		}
@@ -341,7 +341,7 @@ ev_errors ev_socket_bind(char *socket_name, int backlog) {
 				                sizeof(struct sockaddr_un));
 				break;
 		}
-		if (ret_code == -1) {
+		if (ret_code < 0) {
 			close(listen_socket);
 			return EV_ERR_BIND;
 		}
@@ -349,7 +349,7 @@ ev_errors ev_socket_bind(char *socket_name, int backlog) {
 
 	// listen
 	ret_code = listen(listen_socket, backlog);
-	if (ret_code == -1) {
+	if (ret_code < 0) {
 		close(listen_socket);
 		return EV_ERR_LISTEN;
 	}
@@ -366,11 +366,11 @@ ev_errors ev_socket_accept(int listen_socket, struct sockaddr_storage *addr) {
 
 	len = sizeof(addr);
 	fd = accept(listen_socket, (struct sockaddr *)addr, &len);
-	if (fd == -1)
+	if (fd < 0)
 		return EV_ERR_ACCEPT;
 
 	ret_code = fcntl(fd, F_SETFL, O_NONBLOCK);
-	if (ret_code == -1) {
+	if (ret_code < 0) {
 		close(fd);
 		return EV_ERR_FCNTL;
 	}
@@ -378,14 +378,14 @@ ev_errors ev_socket_accept(int listen_socket, struct sockaddr_storage *addr) {
 	if (((struct sockaddr *)addr)->sa_family != AF_UNIX) {
 		ret_code = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
 		                      (char *)&one, sizeof(one));
-		if (ret_code == -1) {
+		if (ret_code < 0) {
 			close(fd);
 			return EV_ERR_SETSOCKO;
 		}
 
 		ret_code = setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE,
 		                      (char *) &one, sizeof(one));
-		if (ret_code == -1) {
+		if (ret_code < 0) {
 			close(fd);
 			return EV_ERR_SETSOCKO;
 		}
