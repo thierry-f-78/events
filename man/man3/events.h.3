@@ -1,4 +1,4 @@
-.TH "events.h" 3 "17 Nov 2008" "Version 0" "events" \" -*- nroff -*-
+.TH "events.h" 3 "24 Nov 2008" "Version 0" "events" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -48,7 +48,7 @@ events.h \-
 
 .in +1c
 .ti -1c
-.RI "enum \fBev_errors\fP { \fBEV_OK\fP =  0, \fBEV_ERR_NOT_PORT\fP =  -0x002, \fBEV_ERR_NOT_ADDR\fP =  -0x003, \fBEV_ERR_SOCKET\fP =  -0x100, \fBEV_ERR_FCNTL\fP =  -0x101, \fBEV_ERR_SETSOCKO\fP =  -0x102, \fBEV_ERR_BIND\fP =  -0x103, \fBEV_ERR_LISTEN\fP =  -0x104, \fBEV_ERR_ACCEPT\fP =  -0x105, \fBEV_ERR_CALLOC\fP =  -0x106, \fBEV_ERR_SELECT\fP =  -0x107, \fBEV_ERR_SIGACTIO\fP =  -0x108, \fBEV_ERR_MALLOC\fP =  -0x109 }"
+.RI "enum \fBev_errors\fP { \fBEV_OK\fP =  0, \fBEV_ERR_NOT_PORT\fP =  -0x002, \fBEV_ERR_NOT_ADDR\fP =  -0x003, \fBEV_ERR_SOCKET\fP =  -0x100, \fBEV_ERR_FCNTL\fP =  -0x101, \fBEV_ERR_SETSOCKO\fP =  -0x102, \fBEV_ERR_BIND\fP =  -0x103, \fBEV_ERR_LISTEN\fP =  -0x104, \fBEV_ERR_ACCEPT\fP =  -0x105, \fBEV_ERR_CALLOC\fP =  -0x106, \fBEV_ERR_SELECT\fP =  -0x107, \fBEV_ERR_SIGACTIO\fP =  -0x108, \fBEV_ERR_MALLOC\fP =  -0x109, \fBEV_ERR_GETSOCKO\fP =  -0x10a, \fBEV_ERR_CONNECT\fP =  -0x10b }"
 .br
 .ti -1c
 .RI "enum \fBev_mode\fP { \fBEV_POLL_READ\fP =  0, \fBEV_POLL_WRITE\fP =  1 }"
@@ -76,7 +76,7 @@ events.h \-
 .RI "static void \fBev_poll_fd_zero\fP (\fBev_mode\fP mode)"
 .br
 .ti -1c
-.RI "static \fBev_errors\fP \fBev_poll_poll\fP (void)"
+.RI "static \fBev_errors\fP \fBev_poll_poll\fP (int dont_return)"
 .br
 .ti -1c
 .RI "\fBev_errors\fP \fBev_signal_add\fP (int signal, \fBev_synch\fP sync, \fBev_signal_run\fP func, void *arg)"
@@ -89,6 +89,12 @@ events.h \-
 .br
 .ti -1c
 .RI "void \fBev_signal_check_active\fP (void)"
+.br
+.ti -1c
+.RI "\fBev_errors\fP \fBev_socket_connect\fP (char *socket_name)"
+.br
+.ti -1c
+.RI "\fBev_errors\fP \fBev_socket_connect_check\fP (int fd)"
 .br
 .ti -1c
 .RI "\fBev_errors\fP \fBev_socket_bind\fP (char *socket_name, int backlog)"
@@ -219,6 +225,12 @@ error with syscall sigaction
 .TP
 \fB\fIEV_ERR_MALLOC \fP\fP
 error with syscall sigaction 
+.TP
+\fB\fIEV_ERR_GETSOCKO \fP\fP
+error with syscall setsockopt 
+.TP
+\fB\fIEV_ERR_CONNECT \fP\fP
+error with syscall setsockopt 
 .SS "enum \fBev_mode\fP"
 .PP
 event mode 
@@ -317,9 +329,14 @@ On success, return 0, else return error code < 0. The error can be EV_ERR_CALLOC
 .RE
 .PP
 
-.SS "static \fBev_errors\fP ev_poll_poll (void)\fC [inline, static]\fP"
+.SS "static \fBev_errors\fP ev_poll_poll (int dont_return)\fC [inline, static]\fP"
 .PP
 run poller
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdont_return\fP if dont_return == 1, the function never return 
+.RE
 .PP
 \fBReturns:\fP
 .RS 4
@@ -402,6 +419,36 @@ create and bind a socket
 \fBReturns:\fP
 .RS 4
 if ok, return the file descriptor, else return < 0. the errors can be: EV_ERR_NOT_PORT, EV_ERR_NOT_ADDR, EV_ERR_SOCKET, EV_ERR_FCNTL, EV_ERR_SETSOCKO, EV_ERR_BIND or EV_ERR_LISTEN. 
+.RE
+.PP
+
+.SS "\fBev_errors\fP ev_socket_connect (char * socket_name)"
+.PP
+create and connect socket
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsocket_name\fP like '<ipv4>:<port>' '<ipv6>:<port>', 'socket_unix_file' or NULL. If NULL, bind is set to socket 0
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+if ok, return the file descriptor, else return < 0. the errors can be: EV_ERR_NOT_PORT, EV_ERR_NOT_ADDR, EV_ERR_SOCKET, EV_ERR_FCNTL, EV_ERR_SETSOCKO, EV_ERR_CONNECT. 
+.RE
+.PP
+
+.SS "\fBev_errors\fP ev_socket_connect_check (int fd)"
+.PP
+finish socket connexion and check result
+.PP
+\fBParameters:\fP
+.RS 4
+\fIfd\fP the checked file descriptor
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+EV_OK if ok else < 0. the errors can be: EV_ERR_GETSOCKO or EV_ERR_CONNECT 
 .RE
 .PP
 
