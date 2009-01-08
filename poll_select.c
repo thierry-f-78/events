@@ -192,7 +192,7 @@ static ev_errors poll_select_poll(void) {
 					if (FD_ISSET(maxfd, polled_rfds[EV_POLL_WRITE])) {
 						if (callback_rfds[EV_POLL_WRITE][maxfd].func != NULL)
 							callback_rfds[EV_POLL_WRITE][maxfd].func(maxfd,
-							                 callback_rfds[EV_POLL_READ][maxfd].arg);
+							                 callback_rfds[EV_POLL_WRITE][maxfd].arg);
 					}
 				}
 	
