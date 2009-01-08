@@ -83,19 +83,21 @@ ev_errors ev_socket_connect(char *socket_name) {
 
 	// AF_INET detected, builds address structur
 	ret_code = inet_pton(AF_INET, conf_addr,
-	                  (void *)&((struct sockaddr_in *)&conf_adress)->sin_addr);
+	                   &((struct sockaddr_in *)&conf_adress)->sin_addr.s_addr);
 	if (ret_code > 0) {
 		conf_socket_type = AF_INET;
 		((struct sockaddr_in *)&conf_adress)->sin_port = htons(conf_port);
+		((struct sockaddr_in *)&conf_adress)->sin_family = AF_INET;
 		goto end_of_building_address;
 	}
 
 	// AF_INET6 detected, builds address structur
 	ret_code = inet_pton(AF_INET6, conf_addr,
-	                (void *)&((struct sockaddr_in6 *)&conf_adress)->sin6_addr);
+	                &((struct sockaddr_in6 *)&conf_adress)->sin6_addr.s6_addr);
 	if (ret_code > 0) {
 		conf_socket_type = AF_INET6;
 		((struct sockaddr_in6 *)&conf_adress)->sin6_port = htons(conf_port);
+		((struct sockaddr_in6 *)&conf_adress)->sin6_family = AF_INET6;
 		goto end_of_building_address;
 	}
 
@@ -254,6 +256,7 @@ ev_errors ev_socket_bind(char *socket_name, int backlog) {
 	                  (void *)&((struct sockaddr_in *)&conf_adress)->sin_addr);
 	if (ret_code > 0) {
 		conf_socket_type = AF_INET;
+		((struct sockaddr_in *)&conf_adress)->sin_family = AF_INET;
 		((struct sockaddr_in *)&conf_adress)->sin_port = htons(conf_port);
 		goto end_of_building_address;
 	}
@@ -263,6 +266,7 @@ ev_errors ev_socket_bind(char *socket_name, int backlog) {
 	                (void *)&((struct sockaddr_in6 *)&conf_adress)->sin6_addr);
 	if (ret_code > 0) {
 		conf_socket_type = AF_INET6;
+		((struct sockaddr_in6 *)&conf_adress)->sin6_family = AF_INET6;
 		((struct sockaddr_in6 *)&conf_adress)->sin6_port = htons(conf_port);
 		goto end_of_building_address;
 	}
