@@ -15,27 +15,27 @@
 
 #define NB_SIG _NSIG
 
-struct ev_signals_register signals[NB_SIG];
+struct ev_signals_register ev_signals[NB_SIG];
 
 int nbsigs = 0;
 
 /* function called for each signal */
 static void ev_signal_interrupt(int signal) {
-	if (signals[signal].func == NULL ||
-	    signals[signal].hide == 1)
+	if (ev_signals[signal].func == NULL ||
+	    ev_signals[signal].hide == 1)
 		return;
 	
-	switch (signals[signal].sync) {
+	switch (ev_signals[signal].sync) {
 
 	// increment counter for later run
 	case EV_SIGNAL_ASYNCH:
 		nbsigs++;
-		signals[signal].nb++;
+		ev_signals[signal].nb++;
 		break;
 
 	// run function
 	case EV_SIGNAL_SYNCH:
-		signals[signal].func(signal, signals[signal].arg);
+		ev_signals[signal].func(signal, ev_signals[signal].arg);
 		break;
 
 	}
@@ -52,11 +52,11 @@ ev_errors ev_signal_add(int signal, ev_synch sync, ev_signal_run func, void *arg
 	if (sigaction(signal, &new, &old))
 		return EV_ERR_SIGACTIO;
 	
-	signals[signal].nb   = 0;
-	signals[signal].hide = 0;
-	signals[signal].sync = sync;
-	signals[signal].func = func;
-	signals[signal].arg  = arg;
+	ev_signals[signal].nb   = 0;
+	ev_signals[signal].hide = 0;
+	ev_signals[signal].sync = sync;
+	ev_signals[signal].func = func;
+	ev_signals[signal].arg  = arg;
 
 	return EV_OK;
 }
@@ -69,24 +69,23 @@ void ev_signal_check_active(void) {
 		return;
 
 	for (i=0; i<NB_SIG; i++) {
-		if (signals[i].func == NULL)
+		if (ev_signals[i].func == NULL)
 			continue;
 
-		for(j = signals[i].nb; j>0; j--) {
-			signals[i].func(i, signals[i].arg);
+		for(j = ev_signals[i].nb; j>0; j--) {
+			ev_signals[i].func(i, ev_signals[i].arg);
 		}
-		nbsigs -= signals[i].nb;
-		signals[i].nb = 0;
+		nbsigs -= ev_signals[i].nb;
+		ev_signals[i].nb = 0;
 	}
 }
 
 /* signal initialization */
 __attribute__((constructor))
-static void ev_signal_init(void) {
+void ev_signal_init(void) {
 	int i;
 
-	for (i=0; i<NB_SIG; i++) {
-		signals[i].func = NULL;
-	}
+	for (i=0; i<NB_SIG; i++)
+		ev_signals[i].func = NULL;
 }
 

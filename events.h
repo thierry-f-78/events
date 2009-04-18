@@ -15,6 +15,7 @@
 
 #include <stdlib.h>
 #include <time.h>
+#include <signal.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 
@@ -248,6 +249,11 @@ static inline ev_errors ev_poll_poll(int dont_return) {
 * SYSTEM SIGNALS
 *
 ****************************************************************************/
+
+/**
+ * Init signals system
+ */
+void ev_signal_init(void);
 
 /**
  * add signal 
