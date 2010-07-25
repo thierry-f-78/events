@@ -19,6 +19,9 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 
+/** init select poller */
+void poll_select_register(void);
+
 /** errors codes */
 typedef enum {
 	/******************************
