@@ -286,6 +286,17 @@ void ev_timeout_remove(struct ev_timeout_node *val) {
 				n->parent->go[1] = n;
 		}
 	}
+
+	val->node.go[0]  = NULL;
+	val->node.go[1]  = NULL;
+	val->node.parent = NULL;
+	val->leaf.go[0]  = NULL;
+	val->leaf.go[1]  = NULL;
+	val->leaf.parent = NULL;
+	val->node.me     = val;
+	val->leaf.me     = val;
+	val->next        = val;
+	val->prev        = val;
 }
 
 /* get time */

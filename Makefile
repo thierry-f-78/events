@@ -1,6 +1,6 @@
 OBJS = timeouts.o signals.o poll.o poll_select.o socket.o
 CPPFLAGS = -DASM
-CFLAGS = -Wall -g -O0 
+CFLAGS = -Wall -g -O0
 
 all: libevents.a
 

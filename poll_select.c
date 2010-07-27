@@ -69,15 +69,21 @@ static ev_errors poll_select_poll(void) {
 	fd_set *fd_write;
 	struct ev_timeout_node *t;
 
-	// timeouts
+	/* timeouts management */
+
+	/* init delay to NULL */
 	tmout = NULL;
+
 	while (1) {
+
+		/* get next timeout */
 		t = ev_timeout_get_min(tmoutbase);
 
-		// pas de timeout : on sort
+		/* if no response, quit */
 		if (t == NULL)
 			break;
 
+		/* compute delay from now to timeout exec time */
 		ev_timeout_get_tv(t, &tv);
 		diff.tv_sec  = tv.tv_sec  - ev_now.tv_sec;
 		diff.tv_usec = tv.tv_usec - ev_now.tv_usec;
@@ -86,17 +92,16 @@ static ev_errors poll_select_poll(void) {
 			diff.tv_sec  -= 1;
 		}
 
-		// execution des timeouts si besoin
+		/* si delay < 0, then execute now and try other timeout */
 		if (diff.tv_sec < 0 || ( diff.tv_sec == 0 && diff.tv_usec < 0) ) {
 			ev_timeout_remove(t);
 			ev_timeout_call_func(t);
+			continue;
 		}
 
-		// sinon, on sort
-		else {
-			tmout = &diff;
-			break;
-		}
+		/* else, set delay into var and quit loop */
+		tmout = &diff;
+		break;
 	}
 
 
@@ -161,10 +166,17 @@ static ev_errors poll_select_poll(void) {
 	if (ret_code < 0)
 		return EV_ERR_SELECT;
 	
-	// timeouts
+	/* execute first timeout */
 	else if (ret_code == 0) {
-		ev_timeout_remove(t);
-		ev_timeout_call_func(t);
+
+		/* get next timeout */
+		t = ev_timeout_get_min(tmoutbase);
+
+		/* if no response, quit */
+		if (t != NULL) {
+			ev_timeout_remove(t);
+			ev_timeout_call_func(t);
+		}
 	}
 
 	// on analyse le retour
