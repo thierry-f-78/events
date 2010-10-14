@@ -19,7 +19,7 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 
-#include <eb64tree.h>
+#include <ebmbtree.h>
 
 /** init select poller */
 void poll_select_register(void);
@@ -136,7 +136,10 @@ struct ev_timeout_basic_node {
 
 /** timeouts events management */
 struct ev_timeout_node {
-	struct eb64_node node;
+	struct {
+		struct eb_node node;
+		struct timeval tv;
+	} node;
 	ev_timeout_run func;
 	void *arg;
 };
@@ -406,7 +409,7 @@ void ev_timeout_build(struct timeval *tv,
 {
 	node->func     = func;
 	node->arg      = arg;
-	node->node.key = *(u64 *)tv;
+	node->node.tv  = *tv;
 }
 
 /** 
@@ -423,7 +426,7 @@ static inline
 ev_errors ev_timeout_insert(struct ev_timeout_basic_node *base,
                             struct ev_timeout_node *node)
 {
-	eb64_insert(&base->root, &node->node);
+	ebmb_insert(&base->root, (struct ebmb_node *)&node->node, sizeof(struct timeval));
 	return EV_OK;
 }
 
@@ -446,7 +449,7 @@ void ev_timeout_free(struct ev_timeout_node *val)
 static inline
 void ev_timeout_remove(struct ev_timeout_node *val)
 {
-	eb64_delete(&val->node);
+	ebmb_delete((struct ebmb_node *)&val->node);
 }
 
 /** 
@@ -459,9 +462,9 @@ void ev_timeout_remove(struct ev_timeout_node *val)
 static inline
 struct ev_timeout_node *ev_timeout_get_min(struct ev_timeout_basic_node *base)
 {
-	struct eb64_node *node;
-	node = eb64_first(&base->root);
-	return eb64_entry(node, struct ev_timeout_node, node);
+	struct ebmb_node *node;
+	node = ebmb_first(&base->root);
+	return ebmb_entry(node, struct ev_timeout_node, node);
 }
 
 /**
@@ -474,9 +477,9 @@ struct ev_timeout_node *ev_timeout_get_min(struct ev_timeout_basic_node *base)
 static inline
 struct ev_timeout_node *ev_timeout_get_max(struct ev_timeout_basic_node *base)
 {
-	struct eb64_node *node;
-	node = eb64_last(&base->root);
-	return eb64_entry(node, struct ev_timeout_node, node);
+	struct ebmb_node *node;
+	node = ebmb_last(&base->root);
+	return ebmb_entry(node, struct ev_timeout_node, node);
 }
 
 /**
@@ -489,9 +492,9 @@ struct ev_timeout_node *ev_timeout_get_max(struct ev_timeout_basic_node *base)
 static inline
 struct ev_timeout_node *ev_timeout_get_next(struct ev_timeout_node *current)
 {
-	struct eb64_node *node;
-	node = eb64_next(&current->node);
-	return eb64_entry(node, struct ev_timeout_node, node);
+	struct ebmb_node *node;
+	node = ebmb_next((struct ebmb_node *)&current->node);
+	return ebmb_entry(node, struct ev_timeout_node, node);
 }
 
 /**
@@ -504,9 +507,9 @@ struct ev_timeout_node *ev_timeout_get_next(struct ev_timeout_node *current)
 static inline
 struct ev_timeout_node *ev_timeout_get_prev(struct ev_timeout_node *current)
 {
-	struct eb64_node *node;
-	node = eb64_prev(&current->node);
-	return eb64_entry(node, struct ev_timeout_node, node);
+	struct ebmb_node *node;
+	node = ebmb_prev((struct ebmb_node *)&current->node);
+	return ebmb_entry(node, struct ev_timeout_node, node);
 }
 
 /**
@@ -523,9 +526,9 @@ static inline
 struct ev_timeout_node *ev_timeout_exists(struct ev_timeout_basic_node *base,
                                           struct timeval *tv)
 {
-	struct eb64_node *node;
-	node = eb64_lookup(&base->root, *(u64 *)tv);
-	return node == NULL ? NULL : eb64_entry(node, struct ev_timeout_node, node);
+	struct ebmb_node *node;
+	node = ebmb_lookup(&base->root, tv, sizeof(struct timeval));
+	return node == NULL ? NULL : ebmb_entry(node, struct ev_timeout_node, node);
 }
 
 /**
@@ -539,7 +542,7 @@ static inline
 void ev_timeout_get_tv(struct ev_timeout_node *val,
                        struct timeval *tv)
 {
-	*(u64 *)tv = val->node.key;
+	*tv = val->node.tv;
 }
 
 /**
@@ -579,7 +582,7 @@ static inline
 void ev_timeout_set_tv(struct ev_timeout_node *val,
                        struct timeval *tv)
 {
-	val->node.key = *(u64 *)tv;
+	val->node.tv = *tv;
 }
 
 /**
