@@ -1,4 +1,4 @@
-OBJS = timeouts.o signals.o poll.o poll_select.o socket.o
+OBJS = signals.o poll.o poll_select.o socket.o
 CPPFLAGS = -DASM
 CFLAGS = -Wall -g -O0 -I../ebtree
 

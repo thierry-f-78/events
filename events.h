@@ -19,6 +19,8 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 
+#include <eb64tree.h>
+
 /** init select poller */
 void poll_select_register(void);
 
@@ -129,18 +131,12 @@ struct ev_timeout_node;
 
 /** timeouts events management node */
 struct ev_timeout_basic_node {
-	unsigned long long int date;
-	unsigned long long int mask;
-	struct ev_timeout_basic_node *parent;
-	struct ev_timeout_basic_node *go[2];
-	struct ev_timeout_node *me;
+	struct eb_root root;
 };
+
 /** timeouts events management */
 struct ev_timeout_node {
-	struct ev_timeout_basic_node node;
-	struct ev_timeout_basic_node leaf;
-	struct ev_timeout_node *next;
-	struct ev_timeout_node *prev;
+	struct eb64_node node;
 	ev_timeout_run func;
 	void *arg;
 };
@@ -378,10 +374,7 @@ ev_errors ev_socket_accept(int listen_socket, struct sockaddr_storage *addr);
  * @param base  preallocated base node
  */
 static inline void ev_timeout_init(struct ev_timeout_basic_node *base) {
-	base->mask    = 0x0ULL;
-	base->parent  = NULL;
-	base->go[0]   = NULL;
-	base->go[1]   = NULL;
+	base->root = EB_ROOT;
 }
 
 /**
@@ -389,7 +382,11 @@ static inline void ev_timeout_init(struct ev_timeout_basic_node *base) {
  *
  * @return   ptr on allocated node, NULL if error
  */
-struct ev_timeout_node *ev_timeout_new(void);
+static inline
+struct ev_timeout_node *ev_timeout_new(void)
+{
+	return calloc(1, sizeof(struct ev_timeout_node));
+}
 
 /**
  * set timeout information into node
@@ -402,24 +399,14 @@ struct ev_timeout_node *ev_timeout_new(void);
  *
  * @param node  preallocated node
  */
-static inline void ev_timeout_build(struct timeval *tv,
-                                    ev_timeout_run func, void *arg,
-                                    struct ev_timeout_node *node) {
-	node->node.go[0]  = NULL;
-	node->node.go[1]  = NULL;
-	node->node.parent = NULL;
-	node->leaf.go[0]  = NULL;
-	node->leaf.go[1]  = NULL;
-	node->leaf.parent = NULL;
-	node->node.me     = node;
-	node->leaf.me     = node;
-	node->next        = node;
-	node->prev        = node;
-	node->func        = func;
-	node->arg         = arg;
-	node->leaf.date   = (unsigned int)tv->tv_sec;
-	node->leaf.date <<= 32;
-	node->leaf.date  |= (unsigned int)tv->tv_usec;
+static inline
+void ev_timeout_build(struct timeval *tv,
+                      ev_timeout_run func, void *arg,
+                      struct ev_timeout_node *node)
+{
+	node->func     = func;
+	node->arg      = arg;
+	node->node.key = *(u64 *)tv;
 }
 
 /** 
@@ -432,22 +419,35 @@ static inline void ev_timeout_build(struct timeval *tv,
  * @return       EV_OK if ok, < 0 if an error is occured. the error code can
  *               be EV_ERR_MALLOC
  */
+static inline
 ev_errors ev_timeout_insert(struct ev_timeout_basic_node *base,
-                            struct ev_timeout_node *node);
+                            struct ev_timeout_node *node)
+{
+	eb64_insert(&base->root, &node->node);
+	return EV_OK;
+}
 
 /** 
  * free memory for node
  *
  * @param val   is a pointer to the freed node
  */
-void ev_timeout_free(struct ev_timeout_node *val);
+static inline
+void ev_timeout_free(struct ev_timeout_node *val)
+{
+	free(val);
+}
 
 /**
  * remove timeout node from tree
  *
  * @param val   is a pointer to the freed node
  */
-void ev_timeout_remove(struct ev_timeout_node *val);
+static inline
+void ev_timeout_remove(struct ev_timeout_node *val)
+{
+	eb64_delete(&val->node);
+}
 
 /** 
  * get min time 
@@ -456,7 +456,13 @@ void ev_timeout_remove(struct ev_timeout_node *val);
  *
  * @return       return a pointer to the min timeout node
  */
-struct ev_timeout_node *ev_timeout_get_min(struct ev_timeout_basic_node *base);
+static inline
+struct ev_timeout_node *ev_timeout_get_min(struct ev_timeout_basic_node *base)
+{
+	struct eb64_node *node;
+	node = eb64_first(&base->root);
+	return eb64_entry(node, struct ev_timeout_node, node);
+}
 
 /**
  * get minx time
@@ -465,7 +471,13 @@ struct ev_timeout_node *ev_timeout_get_min(struct ev_timeout_basic_node *base);
  *
  * @return       return a pointer to the max timeout node
  */
-struct ev_timeout_node *ev_timeout_get_max(struct ev_timeout_basic_node *base);
+static inline
+struct ev_timeout_node *ev_timeout_get_max(struct ev_timeout_basic_node *base)
+{
+	struct eb64_node *node;
+	node = eb64_last(&base->root);
+	return eb64_entry(node, struct ev_timeout_node, node);
+}
 
 /**
  * get next node
@@ -474,7 +486,13 @@ struct ev_timeout_node *ev_timeout_get_max(struct ev_timeout_basic_node *base);
  *
  * @return          return a pointer to the next timeout node
  */
-struct ev_timeout_node *ev_timeout_get_next(struct ev_timeout_node *current);
+static inline
+struct ev_timeout_node *ev_timeout_get_next(struct ev_timeout_node *current)
+{
+	struct eb64_node *node;
+	node = eb64_next(&current->node);
+	return eb64_entry(node, struct ev_timeout_node, node);
+}
 
 /**
  * get prev node
@@ -483,7 +501,13 @@ struct ev_timeout_node *ev_timeout_get_next(struct ev_timeout_node *current);
  *
  * @return          return a pointer to the prev timeout node
  */
-struct ev_timeout_node *ev_timeout_get_prev(struct ev_timeout_node *current);
+static inline
+struct ev_timeout_node *ev_timeout_get_prev(struct ev_timeout_node *current)
+{
+	struct eb64_node *node;
+	node = eb64_prev(&current->node);
+	return eb64_entry(node, struct ev_timeout_node, node);
+}
 
 /**
  * check if the time exist 
@@ -495,8 +519,14 @@ struct ev_timeout_node *ev_timeout_get_prev(struct ev_timeout_node *current);
  * @return       return a pointer to the prev timeout node
  *               or NULL if dont exists time
  */
+static inline
 struct ev_timeout_node *ev_timeout_exists(struct ev_timeout_basic_node *base,
-                                          struct timeval *tv);
+                                          struct timeval *tv)
+{
+	struct eb64_node *node;
+	node = eb64_lookup(&base->root, *(u64 *)tv);
+	return node == NULL ? NULL : eb64_entry(node, struct ev_timeout_node, node);
+}
 
 /**
  * extract timeval
@@ -505,10 +535,11 @@ struct ev_timeout_node *ev_timeout_exists(struct ev_timeout_basic_node *base,
  *
  * @param tv     the timeout date is stored here
  */
-static inline void ev_timeout_get_tv(struct ev_timeout_node *val,
-                                     struct timeval *tv) {
-	tv->tv_sec  = val->leaf.date >> 32;
-	tv->tv_usec = val->leaf.date & 0x00000000fffffffffULL;
+static inline
+void ev_timeout_get_tv(struct ev_timeout_node *val,
+                       struct timeval *tv)
+{
+	*(u64 *)tv = val->node.key;
 }
 
 /**
@@ -518,7 +549,9 @@ static inline void ev_timeout_get_tv(struct ev_timeout_node *val,
  *
  * @return       a pointer to the callback
  */
-static inline ev_timeout_run ev_timeout_get_func(struct ev_timeout_node *val) {
+static inline
+ev_timeout_run ev_timeout_get_func(struct ev_timeout_node *val)
+{
 	return val->func;
 }
 
@@ -529,7 +562,9 @@ static inline ev_timeout_run ev_timeout_get_func(struct ev_timeout_node *val) {
  *
  * @return       the easy argument
  */
-static inline void *ev_timeout_get_arg(struct ev_timeout_node *val) {
+static inline
+void *ev_timeout_get_arg(struct ev_timeout_node *val)
+{
 	return val->arg;
 }
 
@@ -540,11 +575,11 @@ static inline void *ev_timeout_get_arg(struct ev_timeout_node *val) {
  *
  * @param tv    date of the timeout
  */
-static inline void ev_timeout_set_tv(struct ev_timeout_node *val,
-                                    struct timeval *tv) {
-	val->leaf.date   = (unsigned int)tv->tv_sec;
-	val->leaf.date <<= 32;
-	val->leaf.date  |= (unsigned int)tv->tv_usec;
+static inline
+void ev_timeout_set_tv(struct ev_timeout_node *val,
+                       struct timeval *tv)
+{
+	val->node.key = *(u64 *)tv;
 }
 
 /**
@@ -576,9 +611,10 @@ static inline void ev_timeout_set_arg(struct ev_timeout_node *val,
  *
  * @param val    preallocated base node
  */
-static inline void ev_timeout_call_func(struct ev_timeout_node *val) {
+static inline
+void ev_timeout_call_func(struct ev_timeout_node *val)
+{
 	struct timeval tv;
-
 	ev_timeout_get_tv(val, &tv);
 	val->func(&tv, val, val->arg);
 }
