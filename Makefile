@@ -5,7 +5,7 @@ CFLAGS = -Wall -g -O0 -I../ebtree
 all: libevents.a
 
 libevents.a: $(OBJS)
-	ar -rvc libevents.a ../ebtree/ebtree.a $(OBJS)
+	ar -rvc libevents.a ../ebtree/libebtree.a $(OBJS)
 
 clean:
 	rm -f $(OBJS) libevents.a
