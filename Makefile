@@ -1,6 +1,5 @@
 OBJS = signals.o poll.o poll_select.o socket.o
-CPPFLAGS = -DASM
-CFLAGS = -Wall -g -O0 -I../ebtree
+CFLAGS = -Wall -g -O3 -I../ebtree
 
 all: libevents.a
 
