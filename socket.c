@@ -204,7 +204,7 @@ ev_errors ev_socket_bind(char *socket_name, int backlog) {
 	int i;
 	char *conf_addr;
 	int conf_port;
-	char *path;
+	char *path = NULL;
 	
 	memset(&conf_adress, 0, sizeof(struct sockaddr_storage));
 
@@ -320,7 +320,7 @@ ev_errors ev_socket_bind(char *socket_name, int backlog) {
 	}
 
 	// delete socket if already exist
-	if ( conf_socket_type == AF_UNIX && already_binded == 0) {
+	if ( conf_socket_type == AF_UNIX && already_binded == 0 && path != NULL) {
 		unlink(path);
 	}
 
