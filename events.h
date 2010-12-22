@@ -135,7 +135,7 @@ struct ev_timeout_basic_node {
 /** timeouts events management */
 struct ev_timeout_node {
 	struct {
-		struct eb_node node;
+		struct ebmb_node node;
 		struct timeval tv;
 	} node;
 	ev_timeout_run func;
@@ -462,7 +462,7 @@ struct ev_timeout_node *ev_timeout_get_min(struct ev_timeout_basic_node *base)
 {
 	struct ebmb_node *node;
 	node = ebmb_first(&base->root);
-	return ebmb_entry(node, struct ev_timeout_node, node);
+	return ebmb_entry(node, struct ev_timeout_node, node.node);
 }
 
 /**
@@ -477,7 +477,7 @@ struct ev_timeout_node *ev_timeout_get_max(struct ev_timeout_basic_node *base)
 {
 	struct ebmb_node *node;
 	node = ebmb_last(&base->root);
-	return ebmb_entry(node, struct ev_timeout_node, node);
+	return ebmb_entry(node, struct ev_timeout_node, node.node);
 }
 
 /**
@@ -492,7 +492,7 @@ struct ev_timeout_node *ev_timeout_get_next(struct ev_timeout_node *current)
 {
 	struct ebmb_node *node;
 	node = ebmb_next((struct ebmb_node *)&current->node);
-	return ebmb_entry(node, struct ev_timeout_node, node);
+	return ebmb_entry(node, struct ev_timeout_node, node.node);
 }
 
 /**
@@ -507,7 +507,7 @@ struct ev_timeout_node *ev_timeout_get_prev(struct ev_timeout_node *current)
 {
 	struct ebmb_node *node;
 	node = ebmb_prev((struct ebmb_node *)&current->node);
-	return ebmb_entry(node, struct ev_timeout_node, node);
+	return ebmb_entry(node, struct ev_timeout_node, node.node);
 }
 
 /**
@@ -526,7 +526,7 @@ struct ev_timeout_node *ev_timeout_exists(struct ev_timeout_basic_node *base,
 {
 	struct ebmb_node *node;
 	node = ebmb_lookup(&base->root, tv, sizeof(struct timeval));
-	return node == NULL ? NULL : ebmb_entry(node, struct ev_timeout_node, node);
+	return node == NULL ? NULL : ebmb_entry(node, struct ev_timeout_node, node.node);
 }
 
 /**
