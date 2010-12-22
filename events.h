@@ -127,8 +127,6 @@ struct ev_signals_register {
 	unsigned char hide;
 };
 
-struct ev_timeout_node;
-
 /** timeouts events management node */
 struct ev_timeout_basic_node {
 	struct eb_root root;
