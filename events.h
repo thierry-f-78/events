@@ -333,6 +333,22 @@ ev_errors ev_socket_connect(char *socket_name);
 ev_errors ev_socket_connect_check(int fd);
 
 /**
+ * create and bind datagram socket
+ *
+ * @param socket_name  like "<ipv4>:<port>" "<ipv6>:<port>", "socket_unix_file"
+ *                     or NULL. If NULL, bind is set to socket 0
+ *
+ * @param backlog      The backlog parameter defines the maximum length the queue
+ *                     of pending connections may grow to. (see man listen)
+ *
+ * @return             if ok, return the file descriptor, else return < 0. the
+ *                     errors can be: EV_ERR_NOT_PORT, EV_ERR_NOT_ADDR,
+ *                     EV_ERR_SOCKET, EV_ERR_FCNTL, EV_ERR_SETSOCKO,
+ *                     EV_ERR_BIND or EV_ERR_LISTEN.
+ */
+ev_errors ev_socket_dgram_bind(char *socket_name, int backlog);
+
+/**
  * create and bind a socket 
  *
  * @param socket_name  like "<ipv4>:<port>" "<ipv6>:<port>", "socket_unix_file"
@@ -347,6 +363,24 @@ ev_errors ev_socket_connect_check(int fd);
  *                     EV_ERR_BIND or EV_ERR_LISTEN.
  */
 ev_errors ev_socket_bind(char *socket_name, int backlog);
+
+/**
+ * create and bind a socket
+ *
+ * @param socket_name  like "<ipv4>:<port>" "<ipv6>:<port>", "socket_unix_file"
+ *                     or NULL. If NULL, bind is set to socket 0
+ *
+ * @param backlog      The backlog parameter defines the maximum length the queue
+ *                     of pending connections may grow to. (see man listen)
+ *
+ * @param protocol     the socket protocol. SOCK_STREAM or SOCK_DGRAM
+ *
+ * @return             if ok, return the file descriptor, else return < 0. the
+ *                     errors can be: EV_ERR_NOT_PORT, EV_ERR_NOT_ADDR,
+ *                     EV_ERR_SOCKET, EV_ERR_FCNTL, EV_ERR_SETSOCKO,
+ *                     EV_ERR_BIND or EV_ERR_LISTEN.
+ */
+ev_errors ev_socket_bind_opts(char *socket_name, int backlog, int protocol);
 
 /**
  * accept connection 

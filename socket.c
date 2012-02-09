@@ -31,6 +31,7 @@ static char *protos[]= {
 };
 #endif
 
+
 ev_errors ev_socket_connect(char *socket_name) {
 	int ret_code;
 	int listen_socket;
@@ -193,7 +194,7 @@ ev_errors ev_socket_connect_check(int fd) {
 	return EV_OK;
 }
 
-ev_errors ev_socket_bind(char *socket_name, int backlog) {
+ev_errors ev_socket_bind_opts(char *socket_name, int backlog, int protocol) {
 	int ret_code;
 	int listen_socket;
 	int conf_socket_type = -1;
@@ -278,14 +279,15 @@ ev_errors ev_socket_bind(char *socket_name, int backlog) {
 
 	// open socket for AF_UNIX
 	if (conf_socket_type == AF_UNIX) {
-		listen_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+		listen_socket = socket(AF_UNIX, protocol, 0);
 		if (listen_socket < 0)
 			return EV_ERR_SOCKET;
 	}
 
 	// open socket for network protocol
 	else {
-		listen_socket = socket(conf_socket_type, SOCK_STREAM, IPPROTO_TCP);
+		listen_socket = socket(conf_socket_type, protocol,
+		                       protocol == SOCK_STREAM ? IPPROTO_TCP : IPPROTO_UDP);
 		if (listen_socket < 0)
 			return EV_ERR_SOCKET;
 	}
@@ -300,7 +302,7 @@ ev_errors ev_socket_bind(char *socket_name, int backlog) {
 	}
 
 	// tcp no delay
-	if (conf_socket_type == AF_INET6 || conf_socket_type == AF_INET ) {
+	if ( protocol == SOCK_STREAM && (conf_socket_type == AF_INET6 || conf_socket_type == AF_INET) ) {
 		ret_code = setsockopt(listen_socket, IPPROTO_TCP, TCP_NODELAY,
 		                      (char *)&one, sizeof(one));
 		if (ret_code < 0) {
@@ -352,14 +354,24 @@ ev_errors ev_socket_bind(char *socket_name, int backlog) {
 	}
 
 	// listen
-	ret_code = listen(listen_socket, backlog);
-	if (ret_code < 0) {
-		close(listen_socket);
-		return EV_ERR_LISTEN;
+	if (protocol == SOCK_STREAM) {
+		ret_code = listen(listen_socket, backlog);
+		if (ret_code < 0) {
+			close(listen_socket);
+			return EV_ERR_LISTEN;
+		}
 	}
 
 	// return filedescriptor
 	return listen_socket;
+}
+
+ev_errors ev_socket_bind(char *socket_name, int backlog) {
+	return ev_socket_bind_opts(socket_name, backlog, SOCK_STREAM);
+}
+
+ev_errors ev_socket_dgram_bind(char *socket_name, int backlog) {
+	return ev_socket_bind_opts(socket_name, backlog, SOCK_DGRAM);
 }
 
 ev_errors ev_socket_accept(int listen_socket, struct sockaddr_storage *addr) {
