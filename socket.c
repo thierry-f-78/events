@@ -194,7 +194,7 @@ ev_errors ev_socket_connect_check(int fd) {
 	return EV_OK;
 }
 
-ev_errors ev_socket_bind_opts(char *socket_name, int backlog, int protocol) {
+ev_errors ev_socket_bind_opts(const char *socket_name, int backlog, int protocol) {
 	int ret_code;
 	int listen_socket;
 	int conf_socket_type = -1;
@@ -366,11 +366,11 @@ ev_errors ev_socket_bind_opts(char *socket_name, int backlog, int protocol) {
 	return listen_socket;
 }
 
-ev_errors ev_socket_bind(char *socket_name, int backlog) {
+ev_errors ev_socket_bind(const char *socket_name, int backlog) {
 	return ev_socket_bind_opts(socket_name, backlog, SOCK_STREAM);
 }
 
-ev_errors ev_socket_dgram_bind(char *socket_name, int backlog) {
+ev_errors ev_socket_dgram_bind(const char *socket_name, int backlog) {
 	return ev_socket_bind_opts(socket_name, backlog, SOCK_DGRAM);
 }
 

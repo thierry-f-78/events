@@ -346,7 +346,7 @@ ev_errors ev_socket_connect_check(int fd);
  *                     EV_ERR_SOCKET, EV_ERR_FCNTL, EV_ERR_SETSOCKO,
  *                     EV_ERR_BIND or EV_ERR_LISTEN.
  */
-ev_errors ev_socket_dgram_bind(char *socket_name, int backlog);
+ev_errors ev_socket_dgram_bind(const char *socket_name, int backlog);
 
 /**
  * create and bind a socket 
@@ -362,7 +362,7 @@ ev_errors ev_socket_dgram_bind(char *socket_name, int backlog);
  *                     EV_ERR_SOCKET, EV_ERR_FCNTL, EV_ERR_SETSOCKO,
  *                     EV_ERR_BIND or EV_ERR_LISTEN.
  */
-ev_errors ev_socket_bind(char *socket_name, int backlog);
+ev_errors ev_socket_bind(const char *socket_name, int backlog);
 
 /**
  * create and bind a socket
@@ -380,7 +380,7 @@ ev_errors ev_socket_bind(char *socket_name, int backlog);
  *                     EV_ERR_SOCKET, EV_ERR_FCNTL, EV_ERR_SETSOCKO,
  *                     EV_ERR_BIND or EV_ERR_LISTEN.
  */
-ev_errors ev_socket_bind_opts(char *socket_name, int backlog, int protocol);
+ev_errors ev_socket_bind_opts(const char *socket_name, int backlog, int protocol);
 
 /**
  * accept connection 
