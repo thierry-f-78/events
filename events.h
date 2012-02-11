@@ -391,11 +391,14 @@ ev_errors ev_socket_bind_opts(const char *socket_name, int backlog, int protocol
  * @param addr           A pointer to the preallocated struct. This struct is
  *                       filled with a client address.
  *
+ * @param len            A pointer to the integer containing the len of "addr"
+ *                       buffer. This is filled with the returned length.
+ *
  * @return               if ok, return new file desciptor. else return <0. the
  *                       errors can be EV_ERR_ACCEPT, EV_ERR_FCNTL or
  *                       EV_ERR_SETSOCKO.
  */
-ev_errors ev_socket_accept(int listen_socket, struct sockaddr_storage *addr);
+ev_errors ev_socket_accept(int listen_socket, struct sockaddr *addr, socklen_t *len);
 
 
 /****************************************************************************

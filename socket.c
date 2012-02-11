@@ -374,14 +374,12 @@ ev_errors ev_socket_dgram_bind(const char *socket_name, int backlog) {
 	return ev_socket_bind_opts(socket_name, backlog, SOCK_DGRAM);
 }
 
-ev_errors ev_socket_accept(int listen_socket, struct sockaddr_storage *addr) {
+ev_errors ev_socket_accept(int listen_socket, struct sockaddr *addr, socklen_t *len) {
 	int fd;
-	socklen_t len;
 	int ret_code;
 	int one = 1;
 
-	len = sizeof(addr);
-	fd = accept(listen_socket, (struct sockaddr *)addr, &len);
+	fd = accept(listen_socket, addr, len);
 	if (fd < 0)
 		return EV_ERR_ACCEPT;
 
@@ -391,7 +389,7 @@ ev_errors ev_socket_accept(int listen_socket, struct sockaddr_storage *addr) {
 		return EV_ERR_FCNTL;
 	}
 
-	if (((struct sockaddr *)addr)->sa_family != AF_UNIX) {
+	if (addr->sa_family != AF_UNIX) {
 		ret_code = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
 		                      (char *)&one, sizeof(one));
 		if (ret_code < 0) {
