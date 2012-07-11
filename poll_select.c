@@ -253,12 +253,7 @@ static ev_errors poll_select_init(int maxfd, struct ev_timeout_basic_node *timeo
 	return 0;
 }
 
-// a degager plus tard
-/*
-__attribute__((constructor))
-static void poll_select_register(void) {
-*/
-void poll_select_register(void) {
+void ev_poll_use_select(void) {
 	ev_poll.init        = poll_select_init;
 	ev_poll.fd_is_set   = poll_select_fd_is_set;
 	ev_poll.fd_set      = poll_select_fd_set;

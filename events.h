@@ -21,9 +21,6 @@
 
 #include <ebmbtree.h>
 
-/** init select poller */
-void poll_select_register(void);
-
 /** errors codes */
 typedef enum {
 	/******************************
@@ -164,6 +161,12 @@ extern struct ev_signals_register ev_signals[];
 * POLLER
 *
 ****************************************************************************/
+
+/**
+ * Choose "select" polling system. This must called before the "ev_poll_init"
+ * function.
+ */
+void ev_poll_use_select(void);
 
 /** 
  * init events system 
