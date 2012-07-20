@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <signal.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 
@@ -133,7 +134,10 @@ struct ev_timeout_basic_node {
 struct ev_timeout_node {
 	struct {
 		struct ebmb_node node;
-		struct timeval tv;
+		struct {
+			unsigned int tv_sec;
+			unsigned int tv_usec;
+		} tv;
 	} node;
 	ev_timeout_run func;
 	void *arg;
@@ -445,9 +449,10 @@ void ev_timeout_build(struct timeval *tv,
                       ev_timeout_run func, void *arg,
                       struct ev_timeout_node *node)
 {
-	node->func     = func;
-	node->arg      = arg;
-	node->node.tv  = *tv;
+	node->func            = func;
+	node->arg             = arg;
+	node->node.tv.tv_sec  = htonl(tv->tv_sec);
+	node->node.tv.tv_usec = htonl(tv->tv_usec);
 }
 
 /** 
@@ -580,7 +585,8 @@ static inline
 void ev_timeout_get_tv(struct ev_timeout_node *val,
                        struct timeval *tv)
 {
-	*tv = val->node.tv;
+	tv->tv_sec = ntohl(val->node.tv.tv_sec);
+	tv->tv_usec = ntohl(val->node.tv.tv_usec);
 }
 
 /**
@@ -620,7 +626,8 @@ static inline
 void ev_timeout_set_tv(struct ev_timeout_node *val,
                        struct timeval *tv)
 {
-	val->node.tv = *tv;
+	val->node.tv.tv_sec = htonl(tv->tv_sec);
+	val->node.tv.tv_usec = htonl(tv->tv_usec);
 }
 
 /**
